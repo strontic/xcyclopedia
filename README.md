@@ -8,6 +8,6 @@ The xCyclopedia project attempts to document all of executables binaries (and ev
 For Windows, this is done with a powershell script that iterates recursively through all directories in search of executables (note: the script is not released yet). It grabs the output from these, in search for helpful syntax messages. It also grabs a screenshot if a window is visible. The current version of this script only targets .exe's in C:\Windows, C:\Windows\System32\*, C:\Windows\SysWOW64\*, and C:\ProgramData\*.
 
 ### TODO
-Add more hashing algorithms
-Run on more versions of Windows (e.g. server)
-Convince a linux/macos guru to script this for other OS's :)
+- Add more hashing algorithms
+- Run on more versions of Windows (e.g. server)
+- Convince a linux/macos guru to script this for other OS's :)
