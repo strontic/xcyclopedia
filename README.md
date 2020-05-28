@@ -1,3 +1,5 @@
+![xCyclopedia Logo](/assets/strontic-xcyclopedia-logo_full.png)
+
 # xCyclopedia
 Encyclopedia for Executables
 
