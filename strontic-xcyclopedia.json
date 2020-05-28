@@ -2,7 +2,7 @@
 	"COMMENT":  {
 					"author":  "@strontic20",
                     "website":  "strontic.com",
-                    "github":  "github.com/strontic/xclycopedia",
+                    "github":  "github.com/strontic/xcyclopedia",
                     "description":  "Consolidate EXE stdout/stderr strings",
                     "license":  "MIT License; Copyright (c) 2020 strontic"
                 },
