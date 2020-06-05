@@ -1,4 +1,4 @@
-﻿<#
+<#
     Author: @strontic20
     Website: strontic.com
     Github: github.com/strontic/xcyclopedia
@@ -19,7 +19,8 @@ function Get-Xcyclopedia {
         [bool]$execute_files = $true,    # In order for syntax/usage info to be gathered (stdout/stderr), the files must be executed.
         [bool]$take_screenshots = $false, # Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
         [bool]$minimize_windows = $false, # Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
-        [bool]$xcyclopedia_verbose = $true
+        [bool]$xcyclopedia_verbose = $true,
+        [bool]$transcript_file = $true # Write console output to a file (job.txt)
     )
 
     $comment = [PSCustomObject]@{
@@ -38,8 +39,10 @@ function Get-Xcyclopedia {
     $time = Get-Date -Format "yyyy-MM-ddTHH-mm-ss"
 
     # Start transcript
-    try { Stop-Transcript } catch{}
-    Start-Transcript "$save_path\$time-job.txt"
+    if($transcript_file) {
+        try { Stop-Transcript } catch{}
+        Start-Transcript "$save_path\$time-job.txt"
+    }
     
     if($take_screenshots) { 
         $screenshot_dir = "$save_path\$time-screenshots" 
@@ -49,7 +52,7 @@ function Get-Xcyclopedia {
     }
 
     # If window minimization is enabled,check if user wants to continue, 
-    if($minimize_windows -AND $execute_files) { PromptUser-Minimization }
+    if($minimize_windows -AND $execute_files) { $minimize_windows = PromptUser-Minimization }
     
     # Specify list of arguments to be executed
     $args_list = @("/?","/h","-help","help")
@@ -110,6 +113,8 @@ function Get-Xcyclopedia {
         #$filename = "DiskSnapshot.exe"; $filepath = "C:\WINDOWS\system32\DiskSnapshot.exe"
         #Test for handling of null file metadata
         #$filename = "AgentService.exe"; $filepath = "C:\WINDOWS\system32\AgentService.exe"
+        #Test for handling of stray windows (i.e. minimizing them)
+        #$filename = "calc.exe"; $filepath = "C:\WINDOWS\system32\calc.exe"
 
         $filename = $file.name
         $filepath = $file.fullname
@@ -232,7 +237,7 @@ function Get-Xcyclopedia {
                 }
 
                 # Minimize any stray windows for the purposes of screenshots
-                if($global:minimize_windows -AND $take_screenshots) { $shell.minimizeall() }
+                if($minimize_windows -AND $take_screenshots) { $shell.minimizeall() }
 
                 # Add final output values for each file to pscustomobject. Only keep the largest ones.
                 # Check if stdout length is longer. If longer, then overwrite existing stdout value using -force
@@ -283,7 +288,8 @@ function Get-Xcyclopedia {
     Remove-Module Get-Screenshot
     Remove-Module Get-Ssdeep
     Remove-Module Start-ProcessGetOutput
-    Stop-Transcript
+    
+    if($transcript_file) { Stop-Transcript }
 
     # set-executionpolicy restricted -force
 
@@ -292,28 +298,37 @@ function Get-Xcyclopedia {
 function PromptUser-Minimization {
     
     $title = 'Info'
-    $prompt = 'This script will minimize all windows until it has finished (which could take a long time). Are you sure you want to continue? [Y]es, [N]o, or [D]isable Minimization?'
+    $prompt = 'This script will repeatedly minimize all windows until it has finished (which could take a long time). Are you sure you want to continue? [Y]es, [N]o, or [D]isable Minimization?'
     $yes = New-Object System.Management.Automation.Host.ChoiceDescription '&Yes','Continue with the script.'
     $no = New-Object System.Management.Automation.Host.ChoiceDescription '&No','Exit the script.'
     $disable = New-Object System.Management.Automation.Host.ChoiceDescription '&Disable Minimization','Disable window minimization.'
     $options = [System.Management.Automation.Host.ChoiceDescription[]] ($yes,$no,$disable)
     $choice = $host.ui.PromptForChoice($title,$prompt,$options,0)
 
+
+    if($choice -eq 0) { 
+        Write-Host "Minimizing Windows: User chose to continue with window minimization enabled."
+        return $true
+    }
     if($choice -eq 1) { 
-        Write-Host "User chose to abort."
+        Write-Host "Minimizing Windows: User chose to abort."
         exit 
     }
     if($choice -eq 2) { 
-        Write-Host "User chose to disable minimization."
-        $global:minimize_windows = $false 
+        Write-Host "Minimizing Windows: User chose to disable automated window minimization."
+        return $false
     }
 }
 
 function Import-LocalModule ([string]$module_name) {
+
     #Import Screenshot Module
+
     $script_dir = $null
     $script_dir = split-path $SCRIPT:MyInvocation.MyCommand.Path -parent
+
     try { Remove-Module $module_name -ErrorAction SilentlyContinue } catch {}
+
     try { 
         Import-Module "$script_dir\$module_name" -Global
     } 
@@ -321,9 +336,11 @@ function Import-LocalModule ([string]$module_name) {
         write-host "Failed to load $module_name module"
         if($xcyclopedia_verbose) { Write-Host "Message: [$($_.Exception.Message)"] -ForegroundColor Red -BackgroundColor Black } #verbose output
     }
+
 }
 
 function Convert-UnicodeToUTF8 {
+
     [regex]::replace($input, '(?:\\u[0-9a-f]{4})+', 
     { 
         param($m) 
@@ -332,6 +349,7 @@ function Convert-UnicodeToUTF8 {
     })
 
     $files_stdout_content = $files_stdout_content -replace '[^\u0001-\u007F]+', ''
+
 }
 
 function Remove-NonAsciiCharacters {
@@ -379,5 +397,5 @@ function Get-FileList {
     return $files_output
 }
 
-#start main function
+#start main function with defaults
 Get-Xcyclopedia
