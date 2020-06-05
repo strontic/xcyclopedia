@@ -1,8 +1,8 @@
-﻿<#
+<#
     Author: @strontic20
     Website: strontic.com
     Github: github.com/strontic/xcyclopedia
-    Synopsis: Combined specified JSON files into a single files. Only works with PowerShell-compatible JSON files.
+    Synopsis: Combine JSON files into a single file. Only works with PowerShell-compatible JSON files.
     License: MIT License; Copyright (c) 2020 strontic
 #>
 
@@ -11,7 +11,9 @@ function Coalesce-Json {
     param (
         [string[]]$target_files,
         [string]$save_path = "c:\temp\strontic-xcyclopedia", #path to save output
-        [bool]$verbose_output = $true
+        [bool]$verbose_output = $true,
+        [bool]$save_json = $true,
+        [bool]$save_csv = $true
     )
 
     #Check for existence of parameters
@@ -60,11 +62,15 @@ function Coalesce-Json {
     try {
         Write-Host "Saving coalesced files..."
         
-        Write-Host "--> Saving: $save_path\$time-Strontic-xCyclopedia-COMBINED.json"
-        Set-Content -Path "$save_path\$time-Strontic-xCyclopedia-COMBINED.json" -Value $json_output -Encoding UTF8
-        
-        Write-Host "--> Saving: $save_path\$time-Strontic-xCyclopedia-COMBINED.csv"
-        Set-Content -Path "$save_path\$time-Strontic-xCyclopedia-COMBINED.csv" -Value $csv_output -Encoding UTF8
+        if ($save_json) {
+            Write-Host "--> Saving: $save_path\$time-Strontic-xCyclopedia-COMBINED.json"
+            Set-Content -Path "$save_path\$time-Strontic-xCyclopedia-COMBINED.json" -Value $json_output -Encoding UTF8
+        }
+
+        if ($save_csv) {
+            Write-Host "--> Saving: $save_path\$time-Strontic-xCyclopedia-COMBINED.csv"
+            Set-Content -Path "$save_path\$time-Strontic-xCyclopedia-COMBINED.csv" -Value $csv_output -Encoding UTF8
+        }
 
         Write-Host "Writing Output Files: Success"
     } catch {
@@ -85,4 +91,4 @@ function Convert-UnicodeToUTF8 {
     $files_stdout_content = $files_stdout_content -replace '[^\u0001-\u007F]+', ''
 }
 
-Coalesce-Json -target_files C:\temp\strontic-xcyclopedia\SY\2020-06-04T16-05-38-Strontic-xCyclopedia.json,C:\temp\strontic-xcyclopedia\2020-06-04T14-36-06-Strontic-xCyclopedia.json
+#Coalesce-Json -target_files C:\temp\strontic-xcyclopedia\SY\2020-06-04T16-05-38-Strontic-xCyclopedia.json,C:\temp\strontic-xcyclopedia\2020-06-04T14-36-06-Strontic-xCyclopedia.json
