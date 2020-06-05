@@ -6,15 +6,13 @@ Encyclopedia for Executables
 ## What is xCyclopedia?
 The xCyclopedia project attempts to document all executables binaries (and eventually scripts) that reside on a typical operating system. It provides a machine-readable format of this data (e.g. JSON and CSV) so that it can be immediately usable in other systems such as SIEMs to enrich observed executions with contextual data.
 
-## What Datapoints are Available?
+## What data points are available?
 
-* File name
-* File path
 * Runtime data (Standard Out, Standard Error, Children Processes, Screenshots -- if window is visible)
+* File metadata (File Description, Original File Name, Product Name, Comments, Company Name, File Version, Product Version, Copyright)
+* Digital signature validity and associated metadata (Serial, Thumbprint, Issuer, Subject)
 * File hashes (MD5, SHA1, SHA256, SHA384, SHA512)
 * Fuzzy file hash (ssdeep)
-* Digital signature validity and associated metadata (Serial, Thumbprint, Issuer, Subject)
-* File metadata (File Description, Original File Name, Product Name, Comments, Company Name, File Version, Product Version, Copyright)
 
 ## How is this done?
 For Windows, this is done with a powershell script that iterates recursively through all directories and starts any executables found (*note: the script is now released!*). It grabs the output from these, in search of helpful syntax messages. It also grabs a screenshot if a window is visible.
@@ -23,7 +21,11 @@ For Windows, this is done with a powershell script that iterates recursively thr
 
 See [strontic-xcyclopedia.json](strontic-xcyclopedia.json). (Note: a CSV file will be made available soon. I'm currently having problems with formatting.)
 
-## Script Usage
+## Can I collect this data myself?
+
+Sure! The powershell script is now [released](/script)! See syntax/usage section below.
+
+## Collector Script Usage
 
 ### Syntax
 
@@ -56,6 +58,10 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 
 ### **Optional** Dependencies:
 *ssdeep*: For obtaining ssdeep fuzzy hashes (useful for finding similar files) then you must extract the ssdeep ZIP file (available [here](https://github.com/ssdeep-project/ssdeep/releases/download/release-2.14.1/ssdeep-2.14.1-win32-binary.zip)) into a subfolder called "ssdeep-2.14.1".
+
+## How can I contribute?
+* Provide feedback
+* More to come...
 
 ### TODO
 - ~~Add more hashing algorithms~~
