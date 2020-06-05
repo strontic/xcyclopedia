@@ -25,10 +25,37 @@ See [strontic-xcyclopedia.json](strontic-xcyclopedia.json). (Note: a CSV file wi
 
 ## Script Usage
 
+### Syntax
+
+ ```powershell
+  Get-Xcyclopedia
+  #Synopsis: Iterate through all executable files in a specified directory (default target is .EXE). Gather CLI usage/syntax, screenshots, file hashes, file metadata, signature validity, and child processes.
+    -save_path                        #path to save output
+    -target_path                      #target path for enumerating files (non-recursive). Comma-delimited for multiple paths.
+    -target_path_recursive            #target path for enumerating files (recursive). Comma-delimited for multiple paths.
+    -target_file_extension            #File extension to target (default = ".exe")
+    -execute_files    [$true|$false]  #Execute each for gathering syntax/usage info (stdout/stderr)
+    -take_screenshots [$true|$false]  #Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
+    -minimize_windows [$true|$false]  #Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
+    -xcyclopedia_verbose [$true|$false] #Verbose Output
+    -transcript_file  [$true|$false]  #Write console output to a file (job.txt)
+
+  Coalesce-Json
+    #Synopsis: Combine JSON files into a single file. Only works with PowerShell-compatible JSON files.
+    -target_files                   #List of JSON files (comma-delimited) to combine.
+    -save_path                      #Path to save the combined JSON file.
+    -verbose_output [$true|$false]
+    -save_json      [$true|$false]  #Save file as JSON (recommended)
+    -save_csv       [$true|$false]  #Save file as CSV
+````
+
 ### Example
 ```powershell
 Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:windir\system32" -target_file_extension ".exe"
 ````
+
+### **Optional** Dependencies:
+*ssdeep*: For obtaining ssdeep fuzzy hashes (useful for finding similar files) then you must extract the ssdeep ZIP file (available [here](https://github.com/ssdeep-project/ssdeep/releases/download/release-2.14.1/ssdeep-2.14.1-win32-binary.zip)) into a subfolder called "ssdeep-2.14.1".
 
 ### TODO
 - ~~Add more hashing algorithms~~
