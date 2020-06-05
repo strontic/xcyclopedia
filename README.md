@@ -23,6 +23,13 @@ For Windows, this is done with a powershell script that iterates recursively thr
 
 See [strontic-xcyclopedia.json](strontic-xcyclopedia.json). (Note: a CSV file will be made available soon. I'm currently having problems with formatting.)
 
+## Script Usage
+
+### Example
+```powershell
+Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:windir\system32" -target_file_extension ".exe"
+````
+
 ### TODO
 - ~~Add more hashing algorithms~~
 - ~~Run on more versions of Windows (e.g. server)~~
