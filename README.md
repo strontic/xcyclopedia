@@ -47,7 +47,7 @@ Sure! The powershell script is now [released](/script)! See syntax/usage section
     -target_files          #List of JSON files (comma-delimited) to combine.
     -save_path             #Path to save the combined JSON file.
     -verbose_output [bool]
-    -save_json      [bool] #Save file as JSON (recommended)
+    -save_json      [bool] #Save file as JSON
     -save_csv       [bool] #Save file as CSV
 ````
 
