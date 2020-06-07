@@ -32,8 +32,51 @@ function Coalesce-Json {
 
     # Get Date
     $time = Get-Date -Format "yyyy-MM-ddTHH-mm-ss"
+
+    # Define the header names. This is only used for export to CSV file -- not JSON. 
+    # If the header name is not defined here, or it does not match the property names defined in the source JSON file, then it will no be included.
+    $header = [PSCustomObject]@{
+        file_name = $null
+        file_path = $null
+        hash_md5 = $null
+        hash_sha1 = $null
+        hash_sha256 = $null
+        hash_sha384 = $null
+        hash_sha512 = $null
+        hash_ssdeep = $null
+        signature_status = $null
+        signature_status_message = $null
+        signature_serial = $null
+        signature_thumbprint = $null
+        signature_issuer = $null
+        signature_subject = $null
+        meta_description = $null
+        meta_original_filename = $null
+        meta_product_name = $null
+        meta_comments = $null
+        meta_company_name = $null
+        #meta_file_name = $null
+        meta_file_version = $null
+        meta_product_version = $null
+        #meta_isdebug = $null
+        #meta_ispatched = $null
+        #meta_isprerelease = $null
+        #meta_isprivatebuild = $null
+        #meta_isspecialbuild = $null
+        meta_language = $null
+        meta_legal_copyright = $null
+        meta_legal_trademarks = $null
+        #meta_private_build = $null
+        #meta_special_build = $null
+        #meta_file_version_raw = $null
+        #meta_product_version_raw = $null
+		output = $null
+		error = $null
+		children = $null
+    }
+
     $json_obj_group = [PSCustomObject]@{}
-    $json_obj_group
+    $json_obj_group | Add-Member  -NotePropertyName header -NotePropertyValue $header
 
     Write-Host "Reading JSON files..."
 
@@ -52,30 +95,46 @@ function Coalesce-Json {
             $json_item_value = $json_item.Value
 
             try { $json_obj_group | Add-Member -NotePropertyName $json_item_name -NotePropertyValue $json_item_value -ErrorAction SilentlyContinue } catch { write-host "Failed adding $json_item_name." }
+
         }
     }
 
-    # Convert output to JSON and CSV
-    $json_output = $json_obj_group | ConvertTo-Json | Convert-UnicodeToUTF8
-    $csv_output = $json_obj_group | ConvertTo-Csv
-
     try {
         Write-Host "Saving coalesced files..."
-        
-        if ($save_json) {
-            Write-Host "--> Saving: $save_path\$time-Strontic-xCyclopedia-COMBINED.json"
-            Set-Content -Path "$save_path\$time-Strontic-xCyclopedia-COMBINED.json" -Value $json_output -Encoding UTF8
-        }
 
         if ($save_csv) {
+
+            # Convert output to CSV
+            # Note: The first object in $file_objects defines the column header names.
+            # Note2: This part ".PSObject.Properties | ForEach-Object { $_.value }" is needed for transposing the columns/rows.
+            $csv_output = $json_obj_group.PSObject.Properties | ForEach-Object { $_.value } | ConvertTo-Csv -NoTypeInformation
+
+            #Save to file
             Write-Host "--> Saving: $save_path\$time-Strontic-xCyclopedia-COMBINED.csv"
             Set-Content -Path "$save_path\$time-Strontic-xCyclopedia-COMBINED.csv" -Value $csv_output -Encoding UTF8
+
+        }
+
+        if ($save_json) {
+
+            # Convert output to JSON
+            $json_obj_group.PSObject.Properties.Remove('header') #removes column headers which is only needed for the CSV file
+            $json_output = $json_obj_group | ConvertTo-Json | Convert-UnicodeToUTF8
+
+            #Save to file
+            Write-Host "--> Saving: $save_path\$time-Strontic-xCyclopedia-COMBINED.json"
+            Set-Content -Path "$save_path\$time-Strontic-xCyclopedia-COMBINED.json" -Value $json_output -Encoding UTF8
+
         }
 
         Write-Host "Writing Output Files: Success"
-    } catch {
+
+    } 
+    catch {
+
         Write-Host "Writing Output Files: FAILED"
         if($verbose_output) { Write-Host "Message: [$($_.Exception.Message)"] -ForegroundColor Red -BackgroundColor Black } #verbose output
+
     }
 
 }
