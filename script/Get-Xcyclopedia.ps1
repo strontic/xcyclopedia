@@ -32,6 +32,48 @@ function Get-Xcyclopedia {
         rundate = Get-Date -Format "yyyy-MM-dd"
     }
 
+    # Define the header names. This is only used for export to CSV file -- not JSON. 
+    #  If the header name is not defined here, or it does not match the name defined in the file_object, then it will no be included.
+    $header = [PSCustomObject]@{
+        file_name = $null
+        file_path = $null
+        hash_md5 = $null
+        hash_sha1 = $null
+        hash_sha256 = $null
+        hash_sha384 = $null
+        hash_sha512 = $null
+        hash_ssdeep = $null
+        signature_status = $null
+        signature_status_message = $null
+        signature_serial = $null
+        signature_thumbprint = $null
+        signature_issuer = $null
+        signature_subject = $null
+        meta_description = $null
+        meta_original_filename = $null
+        meta_product_name = $null
+        meta_comments = $null
+        meta_company_name = $null
+        #meta_file_name = $null
+        meta_file_version = $null
+        meta_product_version = $null
+        #meta_isdebug = $null
+        #meta_ispatched = $null
+        #meta_isprerelease = $null
+        #meta_isprivatebuild = $null
+        #meta_isspecialbuild = $null
+        meta_language = $null
+        meta_legal_copyright = $null
+        meta_legal_trademarks = $null
+        #meta_private_build = $null
+        #meta_special_build = $null
+        #meta_file_version_raw = $null
+        #meta_product_version_raw = $null
+		output = $null
+		error = $null
+		children = $null
+    }
+
     # Create directory where files will be saved
     New-Item -ItemType Directory -Force -Path "$save_path" | Out-Null
 
@@ -83,6 +125,7 @@ function Get-Xcyclopedia {
     $arg_filters | Add-Member -NotePropertyName "wininit.exe" -NotePropertyValue "$true" # Avoids possible reboot
 
     $file_objects = [PSCustomObject]@{}
+    $file_objects | Add-Member  -NotePropertyName header -NotePropertyValue $header
     $file_objects | Add-Member  -NotePropertyName comment -NotePropertyValue $comment
 
     #for minimizing stray windows
@@ -268,13 +311,19 @@ function Get-Xcyclopedia {
 
         ### TESTING ###
         #$file_object
+        #$file_objects | fl
         #Break
 
     }
 
-    # Convert output to JSON and CSV
+    # Convert output to CSV
+    # Note: The first object in $file_objects defines the column header names.
+    # Note2: This part ".PSObject.Properties | ForEach-Object { $_.value }" is needed for transposing the columns/rows.
+    $csv_output = $file_objects.PSObject.Properties | ForEach-Object { $_.value } | ConvertTo-Csv -NoTypeInformation
+
+    # Convert output to JSON
+    $file_objects.PSObject.Properties.Remove('header') #removes column headers which is only needed for the CSV file
     $json_output = $file_objects | ConvertTo-Json | Convert-UnicodeToUTF8 | Remove-NonAsciiCharacters
-    $csv_output = $file_objects | ConvertTo-Csv
 
     # Save output to files
     try {
