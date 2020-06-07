@@ -19,7 +19,7 @@ For Windows, this is done with a powershell script that iterates recursively thr
 
 ## Where is this data stored?
 
-See [strontic-xcyclopedia.json](strontic-xcyclopedia.json). (Note: a CSV file will be made available soon. I'm currently having problems with formatting.)
+See [strontic-xcyclopedia.json](strontic-xcyclopedia.json) or [strontic-xcyclopedia.csv](strontic-xcyclopedia.csv)
 
 ## Can I collect this data myself?
 
@@ -32,23 +32,23 @@ Sure! The powershell script is now [released](/script)! See syntax/usage section
  ```powershell
   Get-Xcyclopedia
   #Synopsis: Iterate through all executable files in a specified directory (default target is .EXE). Gather CLI usage/syntax, screenshots, file hashes, file metadata, signature validity, and child processes.
-    -save_path                        #path to save output
-    -target_path                      #target path for enumerating files (non-recursive). Comma-delimited for multiple paths.
-    -target_path_recursive            #target path for enumerating files (recursive). Comma-delimited for multiple paths.
-    -target_file_extension            #File extension to target (default = ".exe")
-    -execute_files    [$true|$false]  #Execute each for gathering syntax/usage info (stdout/stderr)
-    -take_screenshots [$true|$false]  #Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
-    -minimize_windows [$true|$false]  #Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
-    -xcyclopedia_verbose [$true|$false] #Verbose Output
-    -transcript_file  [$true|$false]  #Write console output to a file (job.txt)
+    -save_path                  #path to save output
+    -target_path                #target path for enumerating files (non-recursive). Comma-delimited for multiple paths.
+    -target_path_recursive      #target path for enumerating files (recursive). Comma-delimited for multiple paths.
+    -target_file_extension      #File extension to target (default = ".exe")
+    -execute_files    [bool]    #Execute each for gathering syntax/usage info (stdout/stderr)
+    -take_screenshots [bool]    #Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
+    -minimize_windows [bool]    #Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
+    -xcyclopedia_verbose [bool] #Verbose Output
+    -transcript_file  [bool]    #Write console output to a file (job.txt)
 
   Coalesce-Json
     #Synopsis: Combine JSON files into a single file. Only works with PowerShell-compatible JSON files.
-    -target_files                   #List of JSON files (comma-delimited) to combine.
-    -save_path                      #Path to save the combined JSON file.
-    -verbose_output [$true|$false]
-    -save_json      [$true|$false]  #Save file as JSON (recommended)
-    -save_csv       [$true|$false]  #Save file as CSV
+    -target_files          #List of JSON files (comma-delimited) to combine.
+    -save_path             #Path to save the combined JSON file.
+    -verbose_output [bool]
+    -save_json      [bool] #Save file as JSON (recommended)
+    -save_csv       [bool] #Save file as CSV
 ````
 
 ### Example
@@ -67,4 +67,5 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 - ~~Add more hashing algorithms~~
 - ~~Run on more versions of Windows (e.g. server)~~
 - ~~Upload script~~
+- ~~Fix CSV Formatting to show one file per row~~
 - Convince a linux/macos guru to script this for other OS's :)
