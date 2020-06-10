@@ -19,7 +19,11 @@ For Windows, this is done with a powershell script that iterates recursively thr
 
 ## Where is this data stored?
 
-See [strontic-xcyclopedia.json](strontic-xcyclopedia.json) or [strontic-xcyclopedia.csv](strontic-xcyclopedia.csv)
+For the machine-readable data (JSON & CSV): 
+* [strontic-xcyclopedia.json](strontic-xcyclopedia.json)
+* [strontic-xcyclopedia.csv](strontic-xcyclopedia.csv)
+
+For a web-based view of the data: [strontic.github.io/xcyclopedia](https://strontic.github.io/xcyclopedia)
 
 ## Can I collect this data myself?
 
