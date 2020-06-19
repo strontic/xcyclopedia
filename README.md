@@ -19,11 +19,16 @@ For Windows, this is done with a powershell script that iterates recursively thr
 
 ## Where is this data stored?
 
+#### JSON/CSV
 For the machine-readable data (JSON & CSV): 
 * [strontic-xcyclopedia.json](strontic-xcyclopedia.json)
 * [strontic-xcyclopedia.csv](strontic-xcyclopedia.csv)
 
-For a web-based view of the data: [strontic.github.io/xcyclopedia](https://strontic.github.io/xcyclopedia)
+#### Web Page (Markdown)
+For a web-based view of the data click here: [strontic.github.io/xcyclopedia](https://strontic.github.io/xcyclopedia). *Note: the web view includes a few bonus features that the JSON/CSV files do not currently include; namely the following:*
+* Examples of known malicious use of a given executable (current sources: [atomic-red-team](https://github.com/redcanaryco/atomic-red-team), [LOLBAS](https://github.com/LOLBAS-Project/LOLBAS), [malware-ioc](https://github.com/eset/malware-ioc), and [Sigma](https://github.com/Neo23x0/sigma))
+* File comparisons/similarities (using [ssdeep](https://github.com/ssdeep-project/ssdeep/releases/tag/release-2.14.1))
+* relevant [Microsoft documentation](https://github.com/MicrosoftDocs/windowsserverdocs).
 
 ## Can I collect this data myself?
 
