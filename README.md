@@ -13,6 +13,10 @@ The xCyclopedia project attempts to document all executables binaries (and event
 * Digital signature validity and associated metadata (Serial, Thumbprint, Issuer, Subject)
 * File hashes (MD5, SHA1, SHA256, SHA384, SHA512)
 * Fuzzy file hash (ssdeep)
+* Similar files* (available on [xCyclopedia web page](https://strontic.github.io/xcyclopedia) only)
+* External References* (available on [xCyclopedia web page](https://strontic.github.io/xcyclopedia) only)
+  * Examples of misuse (e.g. malicious use of legitimate executable)
+  * Microsoft Documentation
 
 ## How is this done?
 For Windows, this is done with a powershell script that iterates recursively through all directories and starts any executables found (*note: the script is now released!*). It grabs the output from these, in search of helpful syntax messages. It also grabs a screenshot if a window is visible.
