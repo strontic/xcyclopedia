@@ -73,8 +73,8 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 *ssdeep*: For obtaining ssdeep fuzzy hashes (useful for finding similar files) then you must extract the ssdeep ZIP file (available [here](https://github.com/ssdeep-project/ssdeep/releases/download/release-2.14.1/ssdeep-2.14.1-win32-binary.zip)) into a subfolder called "ssdeep-2.14.1".
 
 ## How can I contribute?
+* Share it with friends
 * Provide feedback
-* More to come...
 
 ### TODO
 - ~~Add more hashing algorithms~~
@@ -82,3 +82,7 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 - ~~Upload script~~
 - ~~Fix CSV Formatting to show one file per row~~
 - Convince a linux/macos guru to script this for other OS's :)
+- List loaded DLLs.
+- List other runtime artifacts.
+- Use a more reliable method for determining children processes (and for stopping them)
+- Add other hashing algorithms (e.g. Imphash, vHash, Authentihash)
