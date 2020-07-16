@@ -83,6 +83,7 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 - ~~Fix CSV Formatting to show one file per row~~
 - Convince a linux/macos guru to script this for other OS's :)
 - List loaded DLLs.
+- List handles
 - List other runtime artifacts.
 - Use a more reliable method for determining children processes (and for stopping them)
 - Add other hashing algorithms (e.g. Imphash, vHash, Authentihash)
