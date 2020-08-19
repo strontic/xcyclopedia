@@ -25,8 +25,10 @@ For Windows, this is done with a powershell script that iterates recursively thr
 
 #### JSON/CSV
 For the machine-readable data (JSON & CSV): 
-* [strontic-xcyclopedia.json](strontic-xcyclopedia.json)
-* [strontic-xcyclopedia.csv](strontic-xcyclopedia.csv)
+* ~~[strontic-xcyclopedia.json](strontic-xcyclopedia.json)~~- (DEPRECATED - File size was becoming too big. Use zip file below.)
+* ~~[strontic-xcyclopedia.csv](strontic-xcyclopedia.csv)~~ (DEPRECATED - File size was becoming too big. Use zip file below.)
+* [strontic-xcyclopedia.json.zip](output/strontic-xcyclopedia.json.zip)
+* [strontic-xcyclopedia.csv.zip](output/strontic-xcyclopedia.csv.zip)
 
 #### Web Page (Markdown)
 For a web-based view of the data click here: [strontic.github.io/xcyclopedia](https://strontic.github.io/xcyclopedia). *Note: the web view includes a few bonus features that the JSON/CSV files do not currently include; namely the following:*
