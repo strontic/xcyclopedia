@@ -1,4 +1,4 @@
-<#
+﻿<#
     Author: @strontic20
     Website: strontic.com
     Github: github.com/strontic/xcyclopedia
@@ -107,7 +107,7 @@ function Coalesce-Json {
             # Convert output to CSV
             # Note: The first object in $file_objects defines the column header names.
             # Note2: This part ".PSObject.Properties | ForEach-Object { $_.value }" is needed for transposing the columns/rows.
-            $csv_output = $json_obj_group.PSObject.Properties | ForEach-Object { $_.value } | ConvertTo-Csv -NoTypeInformation
+            $csv_output = $json_obj_group.PSObject.Properties | Sort-Object -Property Name | ForEach-Object { $_.value } | ConvertTo-Csv -NoTypeInformation
 
             #Save to file
             Write-Host "--> Saving: $save_path\$time-Strontic-xCyclopedia-COMBINED.csv"
@@ -150,4 +150,4 @@ function Convert-UnicodeToUTF8 {
     $files_stdout_content = $files_stdout_content -replace '[^\u0001-\u007F]+', ''
 }
 
-#Coalesce-Json -target_files C:\temp\strontic-xcyclopedia\SY\2020-06-04T16-05-38-Strontic-xCyclopedia.json,C:\temp\strontic-xcyclopedia\2020-06-04T14-36-06-Strontic-xCyclopedia.json
+#Coalesce-Json -target_files C:\file1.json,C:\file2.json,c:\file3.json

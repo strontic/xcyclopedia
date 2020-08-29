@@ -37,7 +37,7 @@ function Get-Ssdeep ([string]$filepath,[bool]$ssdeep_verbose = $false) {
 function Start-Ssdeep {
     
     $filepath = Fix-FilePathRedirection -original_file_path $filepath
-    $ssdeep_process = Start-ProcessGetOutput -filepath "$script_dir_ssdeep\ssdeep-2.14.1\ssdeep.exe" -commandline "-s -b `"$filepath`"" -takescreenshot $false
+    $ssdeep_process = Start-ProcessGetOutput -filepath "$script_dir_ssdeep\bin\ssdeep-2.14.1\ssdeep.exe" -commandline "-s -b `"$filepath`"" -takescreenshot $false
     $Hash = ($ssdeep_process.stdout | ConvertFrom-Csv).ssdeep
     return $Hash
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
     Author: @strontic20
     Website: strontic.com
     Github: github.com/strontic/xcyclopedia
@@ -13,14 +13,16 @@ function Get-Xcyclopedia {
 
     param (
         [string]$save_path = "c:\temp\strontic-xcyclopedia", #path to save output
-        [string[]]$target_path_recursive = @("$env:windir\system32","$env:windir\SysWOW64","$env:ProgramData"), #target path for recursive dir
-        [string[]]$target_path = @("$env:windir"), #target path for NON-recursive dir
-        [string]$target_file_extension = ".exe", #File extension to target
-        [bool]$execute_files = $true,    # In order for syntax/usage info to be gathered (stdout/stderr), the files must be executed.
-        [bool]$take_screenshots = $false, # Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
-        [bool]$minimize_windows = $false, # Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
+        [string[]]$target_path_recursive = @("$env:windir\system32","$env:windir\SysWOW64","$env:ProgramData","$env:userprofile\AppData\Local\GitHubDesktop\app-2.5.3\resources\app\git\usr\bin"), #target path for recursive dir
+        [string[]]$target_path = @("$env:windir"), # Target path for NON-recursive dir
+        [string]$target_file_extension = ".exe",   # File extension to target
+        [bool]$execute_files = $true,              # In order for syntax/usage info to be gathered (stdout/stderr), the files must be executed.
+        [bool]$take_screenshots = $false,          # Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
+        [bool]$minimize_windows = $false,          # Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
         [bool]$xcyclopedia_verbose = $true,
-        [bool]$transcript_file = $true # Write console output to a file (job.txt)
+        [bool]$transcript_file = $true,            # Write console output to a file (job.txt)
+        [bool]$export_ssdeep_list = $true,         # Export ssdeep results to a ssdeep-compatible csv file
+        [bool]$export_ssdeep_list_with_md5 = $true # Include MD5 with ssdeep file export
     )
 
     $comment = [PSCustomObject]@{
@@ -33,7 +35,7 @@ function Get-Xcyclopedia {
     }
 
     # Define the header names. This is only used for export to CSV file -- not JSON. 
-    #  If the header name is not defined here, or it does not match the name defined in the file_object, then it will no be included.
+    #  If the header name is not defined here, or it does not match the name defined in the file_object, then it will not be included.
     $header = [PSCustomObject]@{
         file_name = $null
         file_path = $null
@@ -97,7 +99,7 @@ function Get-Xcyclopedia {
     if($minimize_windows -AND $execute_files) { $minimize_windows = PromptUser-Minimization }
     
     # Specify list of arguments to be executed
-    $args_list = @("/?","/h","-help","help")
+    $args_list = @("/?","/h","-h","-help","help","--help")
 
     #Import Modules
     Import-LocalModule Get-Ssdeep
@@ -123,6 +125,14 @@ function Get-Xcyclopedia {
     $arg_filters | Add-Member -NotePropertyName "WindowsActionDialog.exe" -NotePropertyValue "$true" # Avoids possible reboot
     $arg_filters | Add-Member -NotePropertyName "WindowsUpdateElevatedInstaller.exe" -NotePropertyValue "$true" # Avoids possible reboot
     $arg_filters | Add-Member -NotePropertyName "wininit.exe" -NotePropertyValue "$true" # Avoids possible reboot
+    $arg_filters | Add-Member -NotePropertyName "sort.exe" -NotePropertyValue "help" # Avoids large erroneous output
+    $arg_filters | Add-Member -NotePropertyName "mstsc.exe" -NotePropertyValue "$true" # Avoids possible RDP crash in win2k12r2
+    $arg_filters | Add-Member -NotePropertyName "iashost.exe" -NotePropertyValue "$true" # Avoids possible RDP crash in win2k12r2
+    $arg_filters | Add-Member -NotePropertyName "extrac32.exe" -NotePropertyValue "help" # Avoids large erroneous output
+    $arg_filters | Add-Member -NotePropertyName "cat.exe" -NotePropertyValue "help" # Avoids large erroneous output
+    $arg_filters | Add-Member -NotePropertyName "head.exe" -NotePropertyValue "help" # Avoids large erroneous output
+    $arg_filters | Add-Member -NotePropertyName "tail.exe" -NotePropertyValue "help" # Avoids large erroneous output
+    $arg_filters | Add-Member -NotePropertyName "rg.exe" -NotePropertyValue "$true" # Avoids large erroneous output
 
     $file_objects = [PSCustomObject]@{}
     $file_objects | Add-Member  -NotePropertyName header -NotePropertyValue $header
@@ -130,6 +140,12 @@ function Get-Xcyclopedia {
 
     #for minimizing stray windows
     $shell = New-Object -ComObject "Shell.Application"
+
+    # Create file for writing ssdeep hashes
+    if($export_ssdeep_list){
+        $ssdeep_header_byte = [Text.Encoding]::UTF8.GetBytes("ssdeep,1.1--blocksize:hash:hash,filename`r`n") #convert string to UTF8 byte code to avoid writing the UTF8-BOM, which is not supported by ssdeep.
+        Set-Content -Path "$save_path\$time-Strontic-xCyclopedia-ssdeep.txt" -Value $ssdeep_header_byte -Encoding Byte
+    }
 
     # Iterate through all EXE files.
     $i = 0
@@ -186,9 +202,25 @@ function Get-Xcyclopedia {
         #Get ssdeep fuzzy hashes
         try {
             $filehash_ssdeep = Get-Ssdeep -filepath $filepath -ssdeep_verbose $xcyclopedia_verbose
+            
+            #Append hash to ssdeep file (if enabled)
+            if($export_ssdeep_list -AND ($filehash_ssdeep -ne $null)){
+                try {
+                    
+                    #Add MD5 hash to ssdeep file export (if enabled)
+                    if($export_ssdeep_list_with_md5){$ssdeep_export_filepath = "$filepath|$filehash_md5"}
+                    else {$ssdeep_export_filepath = "$filepath"}
+
+                    Add-Content -Path "$save_path\$time-Strontic-xCyclopedia-ssdeep.txt" -Value "$filehash_ssdeep,`"$ssdeep_export_filepath`"" -Encoding UTF8
+                }
+                catch {
+                    Write-Host "SSDEEP EXPORT: FAILED. Unable to append content to $save_path\$time-Strontic-xCyclopedia-ssdeep.txt"
+                    if($xcyclopedia_verbose) { Write-Host "Message: [$($_.Exception.Message)"] -ForegroundColor Red -BackgroundColor Black } #verbose output
+                }
+            }
         }
         catch {
-            $filehash_ssdeep = "$null"
+            $filehash_ssdeep = $null
             if($xcyclopedia_verbose) { Write-Host "Message: [$($_.Exception.Message)"] -ForegroundColor Red -BackgroundColor Black } #verbose output
         }
 
@@ -241,6 +273,7 @@ function Get-Xcyclopedia {
 
         $filename_unique = "$filename-$filehash_md5"
 
+        #Gather runtime data through execution
         if($execute_files) {
 
             Write-Host "Starting execution of $filepath..."
@@ -267,10 +300,10 @@ function Get-Xcyclopedia {
                     Continue
                 }
 
-                #Execute EXE file
+                ####  Execute EXE file  ####
                 try {
             
-                    $process_out = Start-ProcessGetOutput -filepath "$filepath" -commandline "$arg" -takescreenshot $take_screenshots -screenshotpath "$screenshot_dir\$filename_unique-$i2" -start_process_verbose $xcyclopedia_verbose
+                    $process_out = Start-ProcessGetOutput -filepath "$filepath" -commandline "$arg" -takescreenshot $take_screenshots -screenshotpath "$screenshot_dir\$filename_unique-$i2" -start_process_verbose $xcyclopedia_verbose -get_handles $true
     
                 }
                 catch { 
@@ -282,22 +315,47 @@ function Get-Xcyclopedia {
                 # Minimize any stray windows for the purposes of screenshots
                 if($minimize_windows -AND $take_screenshots) { $shell.minimizeall() }
 
-                # Add final output values for each file to pscustomobject. Only keep the largest ones.
+                #####  Add final output values for each file to pscustomobject.  #####
+                 #####        Only keep the largest ones from each file.        #####
+
+                ## ADD STDOUT ##
                 # Check if stdout length is longer. If longer, then overwrite existing stdout value using -force
                 if ($process_out.stdout.Length -gt $file_object.output.Length) {
                     $file_object | Add-Member  -NotePropertyName output -NotePropertyValue $process_out.stdout -Force
                 }
 
+                ## ADD STDERR ##
                 # Check if stderr length is longer. If longer, then overwrite existing stderr using -force
                 if ($process_out.stderr.Length -gt $file_object.error.Length) {
                     $file_object | Add-Member  -NotePropertyName error -NotePropertyValue $process_out.stderr -Force
                 }
 
+                ## ADD CHILDREN ##
                 # Check if children length is longer. If longer, then overwrite existing children using -force
                 if ($process_out.children.Length -gt $file_object.children.Length) {
                     $file_object | Add-Member  -NotePropertyName children -NotePropertyValue $process_out.children -Force
                 }
 
+                ##### NEW!
+                ## ADD HANDLES ##
+                # Check if number of handles is larger. If larger, then overwrite existing handles value using -force
+                if (($process_out.handles.PsObject.Properties | Measure-Object).Count -gt ($file_object.handles.PsObject.Properties | Measure-Object).Count) {
+                    $file_object | Add-Member  -NotePropertyName runtime_handles -NotePropertyValue $process_out.handles -Force
+                }
+
+                ##### NEW!
+                ## ADD MODULES ##
+                #Check if number of modules is larger. If larger, then overwrite existing modules values using -force
+                if ($process_out.modules.Count -gt $file_object.modules.Count) {
+                    $file_object | Add-Member  -NotePropertyName runtime_modules -NotePropertyValue $process_out.modules -Force
+                }
+
+                ##### NEW!
+                ## ADD WINDOW TITLE ##
+                #Check if length of window-title is longer. If longer, then overwrite existing window-title using -force
+                if ($process_out.window_title.Length -gt $file_object.window_title.Length) {
+                    $file_object | Add-Member  -NotePropertyName runtime_window_title -NotePropertyValue $process_out.window_title -Force
+                }
             }
 
         }
@@ -324,7 +382,7 @@ function Get-Xcyclopedia {
     # Convert output to JSON
     $file_objects.PSObject.Properties.Remove('header') #removes column headers which is only needed for the CSV file
     $json_output = $file_objects | ConvertTo-Json | Convert-UnicodeToUTF8 | Remove-NonAsciiCharacters
-
+   
     # Save output to files
     try {
         Set-Content -Path "$save_path\$time-Strontic-xCyclopedia.json" -Value $json_output -Encoding UTF8
@@ -390,12 +448,14 @@ function Import-LocalModule ([string]$module_name) {
 
 function Convert-UnicodeToUTF8 {
 
-    [regex]::replace($input, '(?:\\u[0-9a-f]{4})+', 
-    { 
-        param($m) 
-        $utf8Bytes = (-split ($m.Value -replace '\\u([0-9a-f]{4})', '0x$1 ')).ForEach([byte])
-        [text.encoding]::utf8.GetString($utf8Bytes)
-    })
+    [regex]::replace(
+		$input, '(?:\\u[0-9a-f]{4})+', 
+		{ 
+			param($m) 
+			$utf8Bytes = (-split ($m.Value -replace '\\u([0-9a-f]{4})', '0x$1 ')).ForEach([byte])
+			[text.encoding]::utf8.GetString($utf8Bytes)
+		}
+	)
 
     $files_stdout_content = $files_stdout_content -replace '[^\u0001-\u007F]+', ''
 
