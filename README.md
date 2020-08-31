@@ -72,8 +72,8 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 ````
 
 ### **Optional** Dependencies:
-*ssdeep*: For obtaining ssdeep fuzzy hashes (useful for finding similar files) then you must extract the ssdeep ZIP file (available [here](https://github.com/ssdeep-project/ssdeep/releases/download/release-2.14.1/ssdeep-2.14.1-win32-binary.zip)) into a subfolder called "bin/ssdeep-2.14.1".
-*Sysinternals Handle*: For obtaining the open handles of a given process (available [here](https://docs.microsoft.com/en-us/sysinternals/downloads/handle)) into a subfolder called "bin/sysinternals/handle".
+* *ssdeep*: For obtaining ssdeep fuzzy hashes (useful for finding similar files). You must extract the ssdeep ZIP file (available [here](https://github.com/ssdeep-project/ssdeep/releases/download/release-2.14.1/ssdeep-2.14.1-win32-binary.zip)) into a subfolder called "bin/ssdeep-2.14.1".
+* *Sysinternals Handle*: For obtaining the open handles of a given process. You must place `handle64.exe` (available [here](https://docs.microsoft.com/en-us/sysinternals/downloads/handle)) in a subfolder called "bin/sysinternals/handle".
 
 ## How can I contribute?
 * Share it with friends
