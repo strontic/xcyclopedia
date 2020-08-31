@@ -8,7 +8,7 @@ The xCyclopedia project attempts to document all executables binaries (and event
 
 ## What data points are available?
 
-* Runtime data (Standard Out, Standard Error, Children Processes, Screenshots -- if window is visible)
+* Runtime data (Standard Out, Standard Error, Children Processes, Screenshots, Open Handles, Loaded Modules, Window Title)
 * File metadata (File Description, Original File Name, Product Name, Comments, Company Name, File Version, Product Version, Copyright)
 * Digital signature validity and associated metadata (Serial, Thumbprint, Issuer, Subject)
 * File hashes (MD5, SHA1, SHA256, SHA384, SHA512)
@@ -72,7 +72,8 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 ````
 
 ### **Optional** Dependencies:
-*ssdeep*: For obtaining ssdeep fuzzy hashes (useful for finding similar files) then you must extract the ssdeep ZIP file (available [here](https://github.com/ssdeep-project/ssdeep/releases/download/release-2.14.1/ssdeep-2.14.1-win32-binary.zip)) into a subfolder called "ssdeep-2.14.1".
+*ssdeep*: For obtaining ssdeep fuzzy hashes (useful for finding similar files) then you must extract the ssdeep ZIP file (available [here](https://github.com/ssdeep-project/ssdeep/releases/download/release-2.14.1/ssdeep-2.14.1-win32-binary.zip)) into a subfolder called "bin/ssdeep-2.14.1".
+*Sysinternals Handle*: For obtaining the open handles of a given process (available [here](https://docs.microsoft.com/en-us/sysinternals/downloads/handle)) into a subfolder called "bin/sysinternals/handle".
 
 ## How can I contribute?
 * Share it with friends
@@ -84,8 +85,10 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 - ~~Upload script~~
 - ~~Fix CSV Formatting to show one file per row~~
 - Convince a linux/macos guru to script this for other OS's :)
-- List loaded DLLs.
-- List handles
-- List other runtime artifacts.
+- ~~List loaded DLLs.~~
+- ~~List handles~~
+- ~~List other runtime artifacts.~~
 - Use a more reliable method for determining children processes (and for stopping them)
 - Add other hashing algorithms (e.g. Imphash, vHash, Authentihash)
+- Use Logman.exe (or equivalent) to determine which ETW providers are being populated by a given process.
+- Use SilkETW (or equivalent) for vastly improved runtime metadata gathering. 
