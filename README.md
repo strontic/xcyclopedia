@@ -92,3 +92,4 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 - Add other hashing algorithms (e.g. Imphash, vHash, Authentihash)
 - Use Logman.exe (or equivalent) to determine which ETW providers are being populated by a given process.
 - Use SilkETW (or equivalent) for vastly improved runtime metadata gathering. 
+- Identify runtime deltas in different executable versions. (e.g. when a new command-line switch is added to the standard output)
