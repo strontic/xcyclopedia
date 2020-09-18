@@ -4,7 +4,7 @@
 Encyclopedia for Executables
 
 ## What is xCyclopedia?
-The xCyclopedia project attempts to document all executables binaries (and eventually scripts) that reside on a typical operating system. It provides a machine-readable format of this data (e.g. JSON and CSV) so that it can be immediately usable in other systems such as SIEMs to enrich observed executions with contextual data.
+The xCyclopedia project attempts to document all executables binaries (and eventually scripts) that reside on a typical operating system. It provides a [web page](https://strontic.github.io/xcyclopedia) to view the data as well as a machine-readable format ([JSON](output/strontic-xcyclopedia.json.zip) and [CSV](output/strontic-xcyclopedia.csv.zip)) that can be immediately usable in other systems such as SIEMs to enrich observed executions with contextual data.
 
 ## What data points are available?
 
