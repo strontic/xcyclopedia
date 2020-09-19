@@ -79,7 +79,7 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 * Share it with friends
 * Provide feedback
 
-### TODO
+## TODO
 - ~~Add more hashing algorithms~~
 - ~~Run on more versions of Windows (e.g. server)~~
 - ~~Upload script~~
