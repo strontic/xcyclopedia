@@ -4,7 +4,7 @@
 Encyclopedia for Executables
 
 ## What is xCyclopedia?
-The xCyclopedia project attempts to document all executables binaries (and eventually scripts) that reside on a typical operating system. It provides a [web page](https://strontic.github.io/xcyclopedia) to view the data as well as a machine-readable format ([JSON](output/strontic-xcyclopedia.json.zip) and [CSV](output/strontic-xcyclopedia.csv.zip)) that can be immediately usable in other systems such as SIEMs to enrich observed executions with contextual data.
+The xCyclopedia project attempts to document all executable binaries (and eventually scripts) that reside on a typical operating system. It provides a [web page](https://strontic.github.io/xcyclopedia) to view the data as well as a machine-readable format ([JSON](output/strontic-xcyclopedia.json.zip) and [CSV](output/strontic-xcyclopedia.csv.zip)) that can be immediately usable in other systems such as SIEMs to enrich observed executions with contextual data.
 
 ## What data points are available?
 
@@ -32,13 +32,13 @@ For the machine-readable data (JSON & CSV):
 
 #### Web Page (Markdown)
 For a web-based view of the data click here: [strontic.github.io/xcyclopedia](https://strontic.github.io/xcyclopedia). *Note: the web view includes a few bonus features that the JSON/CSV files do not currently include; namely the following:*
-* Examples of known malicious use of a given executable (current sources: [atomic-red-team](https://github.com/redcanaryco/atomic-red-team), [LOLBAS](https://github.com/LOLBAS-Project/LOLBAS), [malware-ioc](https://github.com/eset/malware-ioc), and [Sigma](https://github.com/Neo23x0/sigma))
+* Examples of known malicious use of a given executable (current sources: [atomic-red-team](https://github.com/redcanaryco/atomic-red-team), [LOLBAS](https://github.com/LOLBAS-Project/LOLBAS), [malware-ioc](https://github.com/eset/malware-ioc), [Sigma](https://github.com/Neo23x0/sigma), and [Signature-Base](https://github.com/Neo23x0/signature-base))
 * File comparisons/similarities (using [ssdeep](https://github.com/ssdeep-project/ssdeep/releases/tag/release-2.14.1))
 * relevant [Microsoft documentation](https://github.com/MicrosoftDocs/windowsserverdocs).
 
 ## Can I collect this data myself?
 
-Sure! The powershell script is now [released](/script)! See syntax/usage section below.
+Sure! The powershell scripts are [here](/script)! See syntax/usage section below.
 
 ## Collector Script Usage
 
