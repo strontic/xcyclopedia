@@ -19,7 +19,7 @@ The xCyclopedia project attempts to document all executable binaries (and eventu
   * Microsoft Documentation
 
 ## How is this done?
-For Windows, this is done with a powershell script that iterates recursively through all directories and starts any executables found (*note: the script is now released!*). It grabs the output from these, in search of helpful syntax messages. It also grabs a screenshot if a window is visible.
+A [powershell script](/script) iterates recursively through all directories and starts any executables found. It then gathers a multitude of artifacts (which is slowly being improved). For example, it grabs the command line output, in search of helpful syntax messages. And if a window is visible, it will take a screenshot.
 
 ## Where is this data stored?
 
