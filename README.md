@@ -9,14 +9,15 @@ The xCyclopedia project attempts to document all executable binaries (and eventu
 ## What data points are available?
 
 * Runtime data (Standard Out, Standard Error, Children Processes, Screenshots, Open Handles, Loaded Modules, Window Title)
-* File metadata (File Description, Original File Name, Product Name, Comments, Company Name, File Version, Product Version, Copyright)
+* File metadata (File Description, Original File Name, Product Name, Comments, Company Name, File Version, Product Version, Copyright, PE Machine Type)
 * Digital signature validity and associated metadata (Serial, Thumbprint, Issuer, Subject)
-* File hashes (MD5, SHA1, SHA256, SHA384, SHA512)
+* File hashes (MD5, SHA1, SHA256, SHA384, SHA512, IMP, PESHA1, PE256)
 * Fuzzy file hash (ssdeep)
 * Similar files* (available on [xCyclopedia web page](https://strontic.github.io/xcyclopedia) only)
 * External References* (available on [xCyclopedia web page](https://strontic.github.io/xcyclopedia) only)
   * Examples of misuse (e.g. malicious use of legitimate executable)
   * Microsoft Documentation
+* File scan results (VirusTotal)
 
 ## How is this done?
 A [powershell script](/script) iterates recursively through all directories and starts any executables found. It then gathers a multitude of artifacts (which is slowly being improved). For example, it grabs the command line output, in search of helpful syntax messages. And if a window is visible, it will take a screenshot.
@@ -54,12 +55,20 @@ Sure! The powershell scripts are [here](/script)! See syntax/usage section below
     -execute_files    [bool]    #Execute each for gathering syntax/usage info (stdout/stderr)
     -take_screenshots [bool]    #Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
     -minimize_windows [bool]    #Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
-    -xcyclopedia_verbose [bool] #Verbose Output
-    -transcript_file  [bool]    #Write console output to a file (job.txt)
+    -xcyclopedia_verbose   [bool] #Verbose Output
+    -transcript_file       [bool] #Write console output to a file (job.txt)
+    -export_ssdeep_list    [bool] #Export ssdeep results to a ssdeep-compatible csv file
+    -export_ssdeep_list_with_md5 [bool] #Include MD5 with ssdeep file export. Useful for determining similarity of unique files.
+    -get_sigcheck          [bool] #Use Sigcheck (Sysinternals) to obtain additional file signatures and PE metadata.
+    -get_virustotal        [bool] #Use Sigcheck (Sysinternals) to obtain VirusTotal detection ratio. It does NOT submit file by default.
+    -accept_virustotal_tos [bool] #Accept VirusTotal's Terms of Service (https://www.virustotal.com/en/about/terms-of-service/)
+    -path_to_file_arg1            #This filepath will be provided as an argument to each binary (to test their response to a file being provided as input)
+    -path_to_file_arg2            #This filepath will be provided as an argument to each binary (to test their response to a file being provided as input)
+    -convert_to_csv        [bool] #CSV export is enabled by default but can be disabled if desired -- JSON will always be exported.
 
   Coalesce-Json
     #Synopsis: Combine JSON files into a single file. Only works with PowerShell-compatible JSON files.
-    -target_files          #List of JSON files (comma-delimited) to combine.
+    -target_files          #List of JSON files (comma-delimited) to combine. NOTE: The first file listed takes precedence in case of duplicates.
     -save_path             #Path to save the combined JSON file.
     -verbose_output [bool]
     -save_json      [bool] #Save file as JSON
@@ -74,6 +83,7 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 ### **Optional** Dependencies:
 * *ssdeep*: For obtaining ssdeep fuzzy hashes (useful for finding similar files). You must extract the ssdeep ZIP file (available [here](https://github.com/ssdeep-project/ssdeep/releases/download/release-2.14.1/ssdeep-2.14.1-win32-binary.zip)) into a subfolder called "bin/ssdeep-2.14.1".
 * *Sysinternals Handle*: For obtaining the open handles of a given process. You must place `handle64.exe` (available [here](https://docs.microsoft.com/en-us/sysinternals/downloads/handle)) in a subfolder called "bin/sysinternals/handle".
+* *Sysinternals Sigcheck*: For obtaining additional file hashes, VirusTotal detections, and PE machine-type. You must place `sigcheck64.exe` (available [here](https://docs.microsoft.com/en-us/sysinternals/downloads/sigcheck)) in a subfolder called "bin/sysinternals/sigcheck".
 
 ## How can I contribute?
 * Share it with friends
@@ -94,3 +104,5 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 - Use SilkETW (or equivalent) for vastly improved runtime metadata gathering. 
 - Identify runtime deltas in different executable versions. (e.g. when a new command-line switch is added to the standard output)
 - Add DLLs to xCyclopedia (e.g. list their exports using something like [DLL Export Viewer](https://www.nirsoft.net/utils/dll_export_viewer.html))
+- ~~Add sigcheck metadata~~
+- ~~Add option for using files as input to each binary via command-line~~
