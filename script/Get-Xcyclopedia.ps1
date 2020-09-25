@@ -12,17 +12,24 @@ function Get-Xcyclopedia {
     # set-executionpolicy unrestricted -force
 
     param (
-        [string]$save_path = "c:\temp\strontic-xcyclopedia", #path to save output
-        [string[]]$target_path_recursive = @("$env:windir\system32","$env:windir\SysWOW64","$env:ProgramData","$env:userprofile\AppData\Local\GitHubDesktop\app-2.5.3\resources\app\git\usr\bin"), #target path for recursive dir
-        [string[]]$target_path = @("$env:windir"), # Target path for NON-recursive dir
-        [string]$target_file_extension = ".exe",   # File extension to target
-        [bool]$execute_files = $true,              # In order for syntax/usage info to be gathered (stdout/stderr), the files must be executed.
-        [bool]$take_screenshots = $false,          # Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
-        [bool]$minimize_windows = $false,          # Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
-        [bool]$xcyclopedia_verbose = $true,
-        [bool]$transcript_file = $true,            # Write console output to a file (job.txt)
-        [bool]$export_ssdeep_list = $true,         # Export ssdeep results to a ssdeep-compatible csv file
-        [bool]$export_ssdeep_list_with_md5 = $true # Include MD5 with ssdeep file export
+        [string]$save_path               = "c:\temp\strontic-xcyclopedia", #path to save output
+        [string[]]$target_path_recursive = @("$env:windir\system32","$env:windir\SysWOW64","$env:ProgramData","$env:userprofile\AppData\Local\GitHubDesktop\app-2.5.4\resources\app\git\usr\bin"), #target path for recursive dir
+        #[string[]]$target_path_recursive = @("C:\Program Files","C:\Program Files (x86)","$env:userprofile\AppData\Local\GitHubDesktop\app-2.5.5\resources\app\git\usr\bin"), #target path for recursive dir
+        [string[]]$target_path           = @("$env:windir"),  # Target path for NON-recursive dir
+        [string]$target_file_extension   = ".exe",  # File extension to target
+        [bool]$execute_files             = $true,   # In order for syntax/usage info to be gathered (stdout/stderr), the files must be executed. (NOTE: For use in a sandbox/test system. Not production!)
+        [bool]$take_screenshots          = $false,  # Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
+        [bool]$minimize_windows          = $false,  # Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
+        [bool]$xcyclopedia_verbose       = $true,
+        [bool]$transcript_file           = $true,   # Write console output to a file (job.txt)
+        [bool]$export_ssdeep_list        = $true,   # Export ssdeep results to a ssdeep-compatible csv file
+        [bool]$export_ssdeep_list_with_md5 = $true, # Include MD5 with ssdeep file export
+        [bool]$get_sigcheck              = $true,   # Use Sigcheck (Sysinternals) to obtain additional file signatures and PE metadata.
+        [bool]$get_virustotal            = $false,  # Use Sigcheck (Sysinternals) to obtain VirusTotal detection ratio. It does NOT submit file by default.
+        [bool]$accept_virustotal_tos     = $false,  # Accept VirusTotal's Terms of Service (https://www.virustotal.com/en/about/terms-of-service/)
+        [string]$path_to_file_arg1       = $null,   # This filepath will be provided as an argument to each binary (to test the binary's response)
+        [string]$path_to_file_arg2       = $null,   # This filepath will be provided as an argument to each binary (to test the binary's response)
+        [bool]$convert_to_csv            = $true    # CSV export is enabled by default but can be disabled if desired -- JSON will always be exported.
     )
 
     $comment = [PSCustomObject]@{
@@ -45,6 +52,9 @@ function Get-Xcyclopedia {
         hash_sha384 = $null
         hash_sha512 = $null
         hash_ssdeep = $null
+        hash_imp    = $null
+        hash_pesha1 = $null
+        hash_pe256  = $null
         signature_status = $null
         signature_status_message = $null
         signature_serial = $null
@@ -71,13 +81,21 @@ function Get-Xcyclopedia {
         #meta_special_build = $null
         #meta_file_version_raw = $null
         #meta_product_version_raw = $null
+        meta_machinetype = $null
 		output = $null
 		error = $null
 		children = $null
+        runtime_window_title = $null
+        filescan_vtdetection = $null
+        filescan_vtlink = $null
     }
 
     # Create directory where files will be saved
     New-Item -ItemType Directory -Force -Path "$save_path" | Out-Null
+
+    # Change directory to script directory
+    $script_dir = split-path $SCRIPT:MyInvocation.MyCommand.Path -parent
+    Set-Location $script_dir
 
     # Get Date
     $time = Get-Date -Format "yyyy-MM-ddTHH-mm-ss"
@@ -97,14 +115,25 @@ function Get-Xcyclopedia {
 
     # If window minimization is enabled,check if user wants to continue, 
     if($minimize_windows -AND $execute_files) { $minimize_windows = PromptUser-Minimization }
+
+    # Prompt user to accept VirusTotal ToS, if not already accepted.
+    if($get_virustotal -AND (-NOT $accept_virustotal_tos)) { $get_virustotal = PromptUser-VirusTotal }
     
+    # Stage dummy files for use as command-line arguments. This is to test the response of each executable and how it handles files as input.
+    $staged_file1 = $staged_file2 = $null
+    if ($path_to_file_arg1) { $staged_file1 = Copy-FileStager -file_to_be_staged "$path_to_file_arg1" -save_path "$save_path" }
+    if ($path_to_file_arg2) { $staged_file2 = Copy-FileStager -file_to_be_staged "$path_to_file_arg2" -save_path "$save_path" }
+
     # Specify list of arguments to be executed
     $args_list = @("/?","/h","-h","-help","help","--help")
+    if ($staged_file1) { $args_list += @("$($staged_file1.FullName)") }
+    if ($staged_file2) { $args_list += @("$($staged_file2.FullName)") }
 
     #Import Modules
     Import-LocalModule Get-Ssdeep
     Import-LocalModule Get-Screenshot
     Import-LocalModule Start-ProcessGetOutput
+    Import-LocalModule Get-Sigcheck
 
     # Get directory listing of specified directories (comma delimited) and file extension
     $files = $null
@@ -177,9 +206,9 @@ function Get-Xcyclopedia {
 
         $filename = $file.name
         $filepath = $file.fullname
-        $filehash_md5 = $file_description = $file_metadata = $null
 
         # Get file metadata
+        $filehash_md5 = $file_description = $file_metadata = $null
         $file_metadata = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filepath)
     
         #Get file hashes
@@ -198,6 +227,18 @@ function Get-Xcyclopedia {
 
         #Get file signature data (e.g. validity)
         $file_signature = Get-AuthenticodeSignature -FilePath "$filepath"
+
+        #Get additional file signatures and PE metadata from Sysinternals Sigcheck
+        if($get_virustotal -or $get_sigcheck) {
+            $file_sigcheck = $filehash_imp = $filehash_pesha1 = $filehash_pe256 = $file_vtdetection = $file_vtlink = $file_machinetype = $null
+            $file_sigcheck = Get-Sigcheck -file_to_sigcheck "$filepath" -sigcheck_verbose $true -get_virustotal $get_virustotal -accept_virustotal_tos $true
+            $filehash_imp     = $file_sigcheck.IMP
+            $filehash_pesha1  = $file_sigcheck.PESHA1
+            $filehash_pe256   = $file_sigcheck.PE256
+            $file_vtdetection = $file_sigcheck.'VT detection'
+            $file_vtlink      = $file_sigcheck.'VT link'
+            $file_machinetype = $file_sigcheck.MachineType
+        }
 
         #Get ssdeep fuzzy hashes
         try {
@@ -232,23 +273,26 @@ function Get-Xcyclopedia {
         $file_object | Add-Member  -NotePropertyName file_name -NotePropertyValue $filename
         $file_object | Add-Member  -NotePropertyName file_path -NotePropertyValue $filepath
         
-        #Add file hashes (from Get-FileHash and Get-Ssdeep)
-        $file_object | Add-Member  -NotePropertyName hash_md5 -NotePropertyValue $filehash_md5
-        $file_object | Add-Member  -NotePropertyName hash_sha1 -NotePropertyValue $filehash_sha1
+        #Add file hashes (from Get-FileHash, Get-Ssdeep, Get-Sigcheck)
+        $file_object | Add-Member  -NotePropertyName hash_md5    -NotePropertyValue $filehash_md5
+        $file_object | Add-Member  -NotePropertyName hash_sha1   -NotePropertyValue $filehash_sha1
         $file_object | Add-Member  -NotePropertyName hash_sha256 -NotePropertyValue $filehash_sha256
         $file_object | Add-Member  -NotePropertyName hash_sha384 -NotePropertyValue $filehash_sha384
         $file_object | Add-Member  -NotePropertyName hash_sha512 -NotePropertyValue $filehash_sha512
-        $file_object | Add-Member  -NotePropertyName hash_ssdeep -NotePropertyValue $filehash_ssdeep
+        if($filehash_ssdeep) { $file_object | Add-Member  -NotePropertyName hash_ssdeep -NotePropertyValue $filehash_ssdeep }
+        if($filehash_imp)    { $file_object | Add-Member  -NotePropertyName hash_imp    -NotePropertyValue $filehash_imp }
+        if($filehash_pesha1) { $file_object | Add-Member  -NotePropertyName hash_pesha1 -NotePropertyValue $filehash_pesha1 }
+        if($filehash_pe256)  { $file_object | Add-Member  -NotePropertyName hash_pe256  -NotePropertyValue $filehash_pe256 }
 
         #Add file signature data (from Get-AuthenticodeSignature)
-        $file_object | Add-Member  -NotePropertyName signature_status -NotePropertyValue $file_signature.Status
+        $file_object | Add-Member  -NotePropertyName signature_status         -NotePropertyValue $file_signature.Status
         $file_object | Add-Member  -NotePropertyName signature_status_message -NotePropertyValue $file_signature.StatusMessage
-        $file_object | Add-Member  -NotePropertyName signature_serial -NotePropertyValue $file_signature.SignerCertificate.SerialNumber
-        $file_object | Add-Member  -NotePropertyName signature_thumbprint -NotePropertyValue $file_signature.SignerCertificate.Thumbprint
-        $file_object | Add-Member  -NotePropertyName signature_issuer -NotePropertyValue $file_signature.SignerCertificate.Issuer
-        $file_object | Add-Member  -NotePropertyName signature_subject -NotePropertyValue $file_signature.SignerCertificate.Subject
+        $file_object | Add-Member  -NotePropertyName signature_serial         -NotePropertyValue $file_signature.SignerCertificate.SerialNumber
+        $file_object | Add-Member  -NotePropertyName signature_thumbprint     -NotePropertyValue $file_signature.SignerCertificate.Thumbprint
+        $file_object | Add-Member  -NotePropertyName signature_issuer         -NotePropertyValue $file_signature.SignerCertificate.Issuer
+        $file_object | Add-Member  -NotePropertyName signature_subject        -NotePropertyValue $file_signature.SignerCertificate.Subject
 
-        #Add file metadata (from GetVersionInfo)
+        #Add file metadata (from GetVersionInfo and Get-Sigcheck)
         if($file_metadata.FileDescription)  { $file_object | Add-Member  -NotePropertyName meta_description -NotePropertyValue $file_metadata.FileDescription }
         if($file_metadata.OriginalFilename) { $file_object | Add-Member  -NotePropertyName meta_original_filename -NotePropertyValue $file_metadata.OriginalFilename }
         if($file_metadata.ProductName)      { $file_object | Add-Member  -NotePropertyName meta_product_name -NotePropertyValue $file_metadata.ProductName }
@@ -269,7 +313,11 @@ function Get-Xcyclopedia {
         #if($file_metadata.SpecialBuild)    { $file_object | Add-Member  -NotePropertyName meta_special_build -NotePropertyValue $file_metadata.SpecialBuild }
         #if($file_metadata.FileVersionRaw)  { $file_object | Add-Member  -NotePropertyName meta_file_version_raw -NotePropertyValue $file_metadata.FileVersionRaw }
         #if($file_metadata.ProductVersionRaw) { $file_object | Add-Member  -NotePropertyName meta_product_version_raw -NotePropertyValue $file_metadata.ProductVersionRaw }
+        if($file_machinetype)               { $file_object | Add-Member  -NotePropertyName meta_machinetype -NotePropertyValue $file_machinetype }
         
+        #Add VirusTotal scan data (from Get-Sigcheck)
+        if($file_vtdetection) { $file_object | Add-Member -NotePropertyName filescan_vtdetection -NotePropertyValue $file_vtdetection }
+        if($file_vtlink)      { $file_object | Add-Member -NotePropertyName filescan_vtlink      -NotePropertyValue $file_vtlink }
 
         $filename_unique = "$filename-$filehash_md5"
 
@@ -374,10 +422,12 @@ function Get-Xcyclopedia {
 
     }
 
+    ## WRITE OUTPUT ##
+
     # Convert output to CSV
     # Note: The first object in $file_objects defines the column header names.
     # Note2: This part ".PSObject.Properties | ForEach-Object { $_.value }" is needed for transposing the columns/rows.
-    $csv_output = $file_objects.PSObject.Properties | ForEach-Object { $_.value } | ConvertTo-Csv -NoTypeInformation
+    if ($convert_to_csv) { $csv_output = $file_objects.PSObject.Properties | ForEach-Object { $_.value } | ConvertTo-Csv -NoTypeInformation }
 
     # Convert output to JSON
     $file_objects.PSObject.Properties.Remove('header') #removes column headers which is only needed for the CSV file
@@ -386,16 +436,30 @@ function Get-Xcyclopedia {
     # Save output to files
     try {
         Set-Content -Path "$save_path\$time-Strontic-xCyclopedia.json" -Value $json_output -Encoding UTF8
-        Set-Content -Path "$save_path\$time-Strontic-xCyclopedia.csv" -Value $csv_output -Encoding UTF8
+        if ($convert_to_csv) { Set-Content -Path "$save_path\$time-Strontic-xCyclopedia.csv" -Value $csv_output -Encoding UTF8 }
     } catch {
         Write-Host "failed: unable to write output files"
         if($xcyclopedia_verbose) { Write-Host "Message: [$($_.Exception.Message)"] -ForegroundColor Red -BackgroundColor Black } #verbose output
     }
 
+    ## CLEAN UP ##
+    
+    # Clean up: Remove Modules
     Remove-Module Get-Screenshot
     Remove-Module Get-Ssdeep
     Remove-Module Start-ProcessGetOutput
     
+    # Clean up: Remove temporary files
+    if ($staged_file1) { 
+        Set-FileWriteUnlocked $staged_file1.FullName
+        Remove-Item $staged_file1 -Force
+    }
+    if ($staged_file2) { 
+        Set-FileWriteUnlocked $staged_file2.FullName
+        Remove-Item $staged_file2 -Force 
+    }
+
+    # Clean up: Stop transcript
     if($transcript_file) { Stop-Transcript }
 
     # set-executionpolicy restricted -force
@@ -412,7 +476,6 @@ function PromptUser-Minimization {
     $options = [System.Management.Automation.Host.ChoiceDescription[]] ($yes,$no,$disable)
     $choice = $host.ui.PromptForChoice($title,$prompt,$options,0)
 
-
     if($choice -eq 0) { 
         Write-Host "Minimizing Windows: User chose to continue with window minimization enabled."
         return $true
@@ -427,17 +490,41 @@ function PromptUser-Minimization {
     }
 }
 
+function PromptUser-VirusTotal {
+    
+    $title = 'Info'
+    $prompt = 'You have enabled VirusTotal checks. You must accept VirusTotal terms of service before continuing (https://www.virustotal.com/en/about/terms-of-service/). Do you accept [Y]es, [N]o, [A]bort?'
+    $yes = New-Object System.Management.Automation.Host.ChoiceDescription '&Yes','Accept and continue.'
+    $no = New-Object System.Management.Automation.Host.ChoiceDescription '&No','Disable VirusTotal checks.'
+    $abort = New-Object System.Management.Automation.Host.ChoiceDescription '&Abort','Exit script.'
+    $options = [System.Management.Automation.Host.ChoiceDescription[]] ($yes,$no,$abort)
+    $choice = $host.ui.PromptForChoice($title,$prompt,$options,0)
+
+    if($choice -eq 0) { 
+        Write-Host "VirusTotal: User chose to accept VirusTotal ToS and continue. Note: in the future please add `"-accept_virustotal_tos $true`"."
+        return $true
+    }
+    if($choice -eq 1) { 
+        Write-Host "VirusTotal: User chose to disable VirusTotal checks and continue."
+        return $false
+    }
+    if($choice -eq 2) { 
+        Write-Host "VirusTotal: User chose to abort."
+        exit
+    }
+}
+
 function Import-LocalModule ([string]$module_name) {
 
     #Import Screenshot Module
 
-    $script_dir = $null
-    $script_dir = split-path $SCRIPT:MyInvocation.MyCommand.Path -parent
+    #$script_dir = $null
+    #$script_dir = split-path $SCRIPT:MyInvocation.MyCommand.Path -parent
 
     try { Remove-Module $module_name -ErrorAction SilentlyContinue } catch {}
 
     try { 
-        Import-Module "$script_dir\$module_name" -Global
+        Import-Module "$PSScriptRoot\$module_name" -Global
     } 
     catch {
         write-host "Failed to load $module_name module"
@@ -506,5 +593,122 @@ function Get-FileList {
     return $files_output
 }
 
+function Copy-FileStager {
+
+    #synopsis: Copies a test-file to temporary location and makes it read-only. Returns file object.
+
+    param (
+        #Specifies file to copy to temporary directory
+        [Parameter(Position=0,mandatory=$true)]
+        [string]$file_to_be_staged,
+
+        #Specifies temporary directory to stage file
+        [Parameter(Position=1,mandatory=$true)]
+        [string[]]$save_path
+
+    )
+
+    #$file_to_be_staged = "C:\windows\notepad.exe"
+    #$save_path = "c:\temp\strontic-xcyclopedia"
+
+    #Check if file exists
+    if (-NOT (Test-Path $file_to_be_staged -PathType Leaf)) {
+        Write-Host "--> Stage Test-File: FAILED. The file was not found. Expected path: $stage_file_path"
+        return
+    }
+
+    $stage_file = Get-Item "$file_to_be_staged"
+    $destination_path = "$save_path\$($stage_file.Name)"
+
+    try { Copy-Item -Path "$file_to_be_staged" -Destination "$destination_path" }
+    catch { 
+        Write-Host "--> Stage Test-File: FAILED. The file could not be copied. Source: `"$file_to_be_staged`" Destination: `"$destination_path`""
+        return
+    }
+
+    if (-NOT (Test-Path $destination_path -PathType Leaf)) {
+        Write-Host "--> Stage Test-File: FAILED. The copied file could not be found. Expected path: $destination_path"
+        return
+    }
+
+    Set-FileWriteLocked -file_to_be_locked "$destination_path"
+
+    $stage_file_readonly = Get-Item "$destination_path"
+
+    return $stage_file_readonly
+
+}
+
+function Set-FileWriteLocked {
+
+    #synopsis: Deny Write to file (this is needed because xcyclopedia executes various executables with the specified files as arguments, which is unpredictable and ocassionally overwrites the specified file)
+
+    param (
+        #Specifies path to file to deny write access
+        [Parameter(Position=0,mandatory=$true)]
+        [string]$file_to_be_locked
+    )
+
+    #Disable File Permission Inheritance
+    try {
+        $file_acl = $null
+        $file_acl = get-acl "$file_to_be_locked"
+        $file_acl.SetAccessRuleProtection($True, $True)
+        Set-Acl -Path "$file_to_be_locked" -AclObject $file_acl
+    }
+    catch {
+        Write-Host "Set-FileWriteLocked: FAILED. Unable to disable file permission inheritance. ($file_to_be_locked)"
+        return $false
+    }
+    
+    try {
+        #Deny Write to file (otherwise it will be overwritten by various executables)
+        Invoke-Expression "icacls `"$file_to_be_locked`" /deny Everyone:W" | Out-Null
+        Invoke-Expression "icacls `"$file_to_be_locked`" /deny Administrators:W" | Out-Null
+        Invoke-Expression "icacls `"$file_to_be_locked`" /deny Users:W" | Out-Null
+        Invoke-Expression "icacls `"$file_to_be_locked`" /deny WDAGUtilityAccount:W" | Out-Null #sandbox account
+    }
+    catch {
+        Write-Host "Set-FileWriteLocked: FAILED. Unable to set DENY file WRITE access. ($file_to_be_locked)"
+        return $false
+    }
+
+    #$file_to_be_locked_item = Get-Item "$file_to_be_locked"
+    #$file_to_be_locked_item.IsReadOnly = $true
+
+    return
+
+}
+
+function Set-FileWriteUnlocked {
+
+    #synopsis: Grant Write access to file (this is needed to be able to delete temporarily staged files)
+
+    param (
+        #Specifies path to file to grant write access
+        [Parameter(Position=0,mandatory=$true)]
+        [string]$file_to_be_unlocked
+    )
+    
+    try {
+        Invoke-Expression "icacls `"$file_to_be_unlocked`" /grant Everyone:W" | Out-Null
+        Invoke-Expression "icacls `"$file_to_be_unlocked`" /grant Administrators:W" | Out-Null
+        Invoke-Expression "icacls `"$file_to_be_unlocked`" /grant Users:W" | Out-Null
+        Invoke-Expression "icacls `"$file_to_be_unlocked`" /grant WDAGUtilityAccount:W" | Out-Null #sandbox account
+    }
+    catch {
+        Write-Host "Set-FileWriteLocked: FAILED. Unable to GRANT file WRITE access. ($file_to_be_unlocked)"
+        return $false
+    }
+
+    #$file_to_be_unlocked_item = Get-Item "$file_to_be_unlocked"
+    #$file_to_be_unlocked_item.IsReadOnly = $false
+
+    return
+
+}
+
 #start main function with defaults
 Get-Xcyclopedia
+
+#Get-Xcyclopedia -get_virustotal $true -accept_virustotal_tos $true -path_to_file_arg1 "c:\windows\notepad.exe"
