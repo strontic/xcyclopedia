@@ -89,7 +89,8 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 - ~~List handles~~
 - ~~List other runtime artifacts.~~
 - Use a more reliable method for determining children processes (and for stopping them)
-- Add other hashing algorithms (e.g. Imphash, vHash, Authentihash)
+- ~~Add other hashing algorithms (e.g. Imphash,~~ vHash, ~~Authentihash)~~
 - Use Logman.exe (or equivalent) to determine which ETW providers are being populated by a given process.
 - Use SilkETW (or equivalent) for vastly improved runtime metadata gathering. 
 - Identify runtime deltas in different executable versions. (e.g. when a new command-line switch is added to the standard output)
+- Add DLLs to xCyclopedia (e.g. list their exports using something like [DLL Export Viewer](https://www.nirsoft.net/utils/dll_export_viewer.html))
