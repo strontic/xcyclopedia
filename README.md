@@ -18,6 +18,7 @@ The xCyclopedia project attempts to document all executable binaries (and eventu
   * Examples of misuse (e.g. malicious use of legitimate executable)
   * Microsoft Documentation
 * File scan results (VirusTotal)
+* DLL Exported Functions (DLL files only)
 
 ## How is this done?
 A [powershell script](/script) iterates recursively through all directories and starts any executables found. It then gathers a multitude of artifacts (which is slowly being improved). For example, it grabs the command line output, in search of helpful syntax messages. And if a window is visible, it will take a screenshot.
@@ -26,16 +27,20 @@ A [powershell script](/script) iterates recursively through all directories and 
 
 #### JSON/CSV
 For the machine-readable data (JSON & CSV): 
-* ~~[strontic-xcyclopedia.json](strontic-xcyclopedia.json)~~- (DEPRECATED - File size was becoming too big. Use zip file below.)
-* ~~[strontic-xcyclopedia.csv](strontic-xcyclopedia.csv)~~ (DEPRECATED - File size was becoming too big. Use zip file below.)
-* [strontic-xcyclopedia.json.zip](output/strontic-xcyclopedia.json.zip)
-* [strontic-xcyclopedia.csv.zip](output/strontic-xcyclopedia.csv.zip)
+* ~~[strontic-xcyclopedia.json](output/strontic-xcyclopedia_DEPRECATED.json)~~- (DEPRECATED - File size was becoming too big. Use zip file below.)
+* ~~[strontic-xcyclopedia.csv](output/strontic-xcyclopedia_DEPRECATED.csv)~~ (DEPRECATED - File size was becoming too big. Use zip file below.)
+* EXE Data
+  * [strontic-xcyclopedia.json.zip](output/strontic-xcyclopedia.json.zip)
+  * [strontic-xcyclopedia.csv.zip](output/strontic-xcyclopedia.csv.zip)
+* DLL Data
+  * [strontic-xcyclopedia_DLL.json.zip](output/strontic-xcyclopedia_DLL.json.zip)
+  * [strontic-xcyclopedia_DLL.csv.zip](output/strontic-xcyclopedia_DLL.csv.zip)
 
 #### Web Page (Markdown)
 For a web-based view of the data click here: [strontic.github.io/xcyclopedia](https://strontic.github.io/xcyclopedia). *Note: the web view includes a few bonus features that the JSON/CSV files do not currently include; namely the following:*
 * Examples of known malicious use of a given executable (current sources: [atomic-red-team](https://github.com/redcanaryco/atomic-red-team), [LOLBAS](https://github.com/LOLBAS-Project/LOLBAS), [malware-ioc](https://github.com/eset/malware-ioc), [Sigma](https://github.com/Neo23x0/sigma), and [Signature-Base](https://github.com/Neo23x0/signature-base))
 * File comparisons/similarities (using [ssdeep](https://github.com/ssdeep-project/ssdeep/releases/tag/release-2.14.1))
-* relevant [Microsoft documentation](https://github.com/MicrosoftDocs/windowsserverdocs).
+* Relevant [Microsoft documentation](https://github.com/MicrosoftDocs/windowsserverdocs).
 
 ## Can I collect this data myself?
 
@@ -103,6 +108,6 @@ Get-Xcyclopedia -save_path "c:\temp\strontic-xcyclopedia" -target_path "$env:win
 - Use Logman.exe (or equivalent) to determine which ETW providers are being populated by a given process.
 - Use SilkETW (or equivalent) for vastly improved runtime metadata gathering. 
 - Identify runtime deltas in different executable versions. (e.g. when a new command-line switch is added to the standard output)
-- Add DLLs to xCyclopedia (e.g. list their exports using something like [DLL Export Viewer](https://www.nirsoft.net/utils/dll_export_viewer.html))
+- ~~Add DLLs to xCyclopedia (e.g. list their exports using something like [DLL Export Viewer](https://www.nirsoft.net/utils/dll_export_viewer.html))~~
 - ~~Add sigcheck metadata~~
 - ~~Add option for using files as input to each binary via command-line~~
