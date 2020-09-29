@@ -208,6 +208,8 @@ function Start-Handles {
 
     param ([int]$handles_process_id)
 
+    $script_dir = split-path $SCRIPT:MyInvocation.MyCommand.Path -parent
+
     # Check if the Get-Handles module is loaded. If not, load it.
     if (-NOT (Get-Module Get-Handles)) {
         Write-Host "----> Handles: INFO. Module Not Loaded. Loading NOW...."
@@ -228,7 +230,7 @@ function Start-Handles {
 
     # Get the handles
     try {
-        $start_handles_results = Get-Handles -handles_process_id $handles_process_id
+        $start_handles_results = Get-Handles -handles_process_id $handles_process_id -handle_exe_path "$script_dir\bin\sysinternals\handle\handle64.exe" 
         Write-Host "----> Handles: Success"
     }
     catch {

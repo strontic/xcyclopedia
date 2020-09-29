@@ -17,18 +17,18 @@ function Get-Xcyclopedia {
         #[string[]]$target_path_recursive = @("C:\Program Files","C:\Program Files (x86)","$env:userprofile\AppData\Local\GitHubDesktop\app-2.5.5\resources\app\git\usr\bin"), #target path for recursive dir
         [string[]]$target_path           = @("$env:windir"),  # Target path for NON-recursive dir
         [string]$target_file_extension   = ".exe",  # File extension to target
-        [bool]$execute_files             = $true,   # In order for syntax/usage info to be gathered (stdout/stderr), the files must be executed. (NOTE: For use in a sandbox/test system. Not production!)
+        [bool]$execute_files             = $false,  # In order for syntax/usage info to be gathered (stdout/stderr), the files must be executed. (NOTE: For use in a sandboxed system. Not production!)
         [bool]$take_screenshots          = $false,  # Take a screenshot if a given process has a window visible. This requires execute_files to be enabled.
         [bool]$minimize_windows          = $false,  # Minimizing windows helps with screenshots, so that other windows do not get in the way. This only takes effect if execute_files and $take_screenshots are both enabled.
         [bool]$xcyclopedia_verbose       = $true,
         [bool]$transcript_file           = $true,   # Write console output to a file (job.txt)
         [bool]$export_ssdeep_list        = $true,   # Export ssdeep results to a ssdeep-compatible csv file
-        [bool]$export_ssdeep_list_with_md5 = $true, # Include MD5 with ssdeep file export
-        [bool]$get_sigcheck              = $true,   # Use Sigcheck (Sysinternals) to obtain additional file signatures and PE metadata.
+        [bool]$export_ssdeep_list_with_md5 = $true, # Include MD5 with ssdeep file export,  Useful for determining similarity of unique files.
+        [bool]$get_sigcheck              = $false,  # Use Sigcheck (Sysinternals) to obtain additional file signatures and PE metadata.
         [bool]$get_virustotal            = $false,  # Use Sigcheck (Sysinternals) to obtain VirusTotal detection ratio. It does NOT submit file by default.
         [bool]$accept_virustotal_tos     = $false,  # Accept VirusTotal's Terms of Service (https://www.virustotal.com/en/about/terms-of-service/)
-        [string]$path_to_file_arg1       = $null,   # This filepath will be provided as an argument to each binary (to test the binary's response)
-        [string]$path_to_file_arg2       = $null,   # This filepath will be provided as an argument to each binary (to test the binary's response)
+        [string]$path_to_file_arg1       = $null,   # This filepath will be provided as an argument to each binary (to test their response to a file being provided as input)
+        [string]$path_to_file_arg2       = $null,   # This filepath will be provided as an argument to each binary (to test their response to a file being provided as input)
         [bool]$convert_to_csv            = $true    # CSV export is enabled by default but can be disabled if desired -- JSON will always be exported.
     )
 
@@ -134,6 +134,7 @@ function Get-Xcyclopedia {
     Import-LocalModule Get-Screenshot
     Import-LocalModule Start-ProcessGetOutput
     Import-LocalModule Get-Sigcheck
+    Import-LocalModule Get-DllExports
 
     # Get directory listing of specified directories (comma delimited) and file extension
     $files = $null
@@ -203,9 +204,12 @@ function Get-Xcyclopedia {
         #$filename = "AgentService.exe"; $filepath = "C:\WINDOWS\system32\AgentService.exe"
         #Test for handling of stray windows (i.e. minimizing them)
         #$filename = "calc.exe"; $filepath = "C:\WINDOWS\system32\calc.exe"
+        #Test for DLL:
+        #$filename = "msvcrt.dll"; $filepath = "C:\WINDOWS\system32\msvcrt.dll"; $fileextension = ".dll"
 
         $filename = $file.name
         $filepath = $file.fullname
+        $fileextension = $file.extension
 
         # Get file metadata
         $filehash_md5 = $file_description = $file_metadata = $null
@@ -322,7 +326,7 @@ function Get-Xcyclopedia {
         $filename_unique = "$filename-$filehash_md5"
 
         #Gather runtime data through execution
-        if($execute_files) {
+        if($execute_files -AND ($fileextension -eq ".exe" )) {
 
             Write-Host "Starting execution of $filepath..."
 
@@ -408,6 +412,20 @@ function Get-Xcyclopedia {
 
         }
 
+        ## DLLs ##
+        if ($fileextension -eq ".dll") {
+            $file_metadata_dll = Get-DllExports -filepath "$filepath"
+
+            if($file_metadata_dll) { $file_object | Add-Member -NotePropertyName "dll_export" -NotePropertyValue $file_metadata_dll }
+
+            #if($($file_metadata_dll.function_name))    { $file_object | Add-Member  -NotePropertyName "dll_export_functionname" -NotePropertyValue $($file_metadata_dll.function_name) }
+            #if($($file_metadata_dll.ordinal))          { $file_object | Add-Member  -NotePropertyName "dll_export_ordinal" -NotePropertyValue $($file_metadata_dll.ordinal) }
+            #if($($file_metadata_dll.type))             { $file_object | Add-Member  -NotePropertyName "dll_export_type" -NotePropertyValue $($file_metadata_dll.type) }
+            #if($($file_metadata_dll.function_address)) { $file_object | Add-Member  -NotePropertyName "dll_export_address" -NotePropertyValue $($file_metadata_dll.function_address) }
+            #if($($file_metadata_dll.relative_address)) { $file_object | Add-Member  -NotePropertyName "dll_export_relativeaddress" -NotePropertyValue $($file_metadata_dll.relative_address) }
+
+        }
+
         # Aggregate file group into parent
         try { $file_objects | Add-Member  -NotePropertyName $filename_unique -NotePropertyValue $file_object } catch { write-host "failed: adding file_object to file_objects " }
 
@@ -431,7 +449,7 @@ function Get-Xcyclopedia {
 
     # Convert output to JSON
     $file_objects.PSObject.Properties.Remove('header') #removes column headers which is only needed for the CSV file
-    $json_output = $file_objects | ConvertTo-Json | Convert-UnicodeToUTF8 | Remove-NonAsciiCharacters
+    $json_output = $file_objects | ConvertTo-Json -Depth 4 | Convert-UnicodeToUTF8 | Remove-NonAsciiCharacters
    
     # Save output to files
     try {
@@ -709,6 +727,4 @@ function Set-FileWriteUnlocked {
 }
 
 #start main function with defaults
-Get-Xcyclopedia
-
-#Get-Xcyclopedia -get_virustotal $true -accept_virustotal_tos $true -path_to_file_arg1 "c:\windows\notepad.exe"
+#Get-Xcyclopedia

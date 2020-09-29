@@ -9,11 +9,11 @@
 function Coalesce-Json {
 
     param (
-        [string[]]$target_files,
-        [string]$save_path = "c:\temp\strontic-xcyclopedia", #path to save output
+        [string[]]$target_files,                             #List of JSON files (comma-delimited) to combine. NOTE: The first file listed takes precedence in case of duplicates.
+        [string]$save_path = "c:\temp\strontic-xcyclopedia", #Path to save the combined JSON file.
         [bool]$verbose_output = $true,
-        [bool]$save_json = $true,
-        [bool]$save_csv = $true
+        [bool]$save_json = $true,                            #Save file as JSON
+        [bool]$save_csv = $true                              #Save file as CSV
     )
 
     #Check for existence of parameters
@@ -44,6 +44,9 @@ function Coalesce-Json {
         hash_sha384 = $null
         hash_sha512 = $null
         hash_ssdeep = $null
+        hash_imp    = $null
+        hash_pesha1 = $null
+        hash_pe256  = $null
         signature_status = $null
         signature_status_message = $null
         signature_serial = $null
@@ -70,9 +73,13 @@ function Coalesce-Json {
         #meta_special_build = $null
         #meta_file_version_raw = $null
         #meta_product_version_raw = $null
+        meta_machinetype = $null
 		output = $null
 		error = $null
 		children = $null
+        runtime_window_title = $null
+        filescan_vtdetection = $null
+        filescan_vtlink = $null
     }
 
     $json_obj_group = [PSCustomObject]@{}
@@ -119,7 +126,7 @@ function Coalesce-Json {
 
             # Convert output to JSON
             $json_obj_group.PSObject.Properties.Remove('header') #removes column headers which is only needed for the CSV file
-            $json_output = $json_obj_group | ConvertTo-Json | Convert-UnicodeToUTF8
+            $json_output = $json_obj_group | ConvertTo-Json -Depth 4 | Convert-UnicodeToUTF8
 
             #Save to file
             Write-Host "--> Saving: $save_path\$time-Strontic-xCyclopedia-COMBINED.json"
@@ -150,4 +157,4 @@ function Convert-UnicodeToUTF8 {
     $files_stdout_content = $files_stdout_content -replace '[^\u0001-\u007F]+', ''
 }
 
-#Coalesce-Json -target_files C:\file1.json,C:\file2.json,c:\file3.json
+#Coalesce-Json -target_files filepath1,filepath2
