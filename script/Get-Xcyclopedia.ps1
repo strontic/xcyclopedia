@@ -13,7 +13,7 @@ function Get-Xcyclopedia {
 
     param (
         [string]$save_path               = "c:\temp\strontic-xcyclopedia", #path to save output
-        [string[]]$target_path_recursive = @("$env:windir\system32","$env:windir\SysWOW64","$env:ProgramData","$env:userprofile\AppData\Local\GitHubDesktop\app-2.5.4\resources\app\git\usr\bin"), #target path for recursive dir
+        [string[]]$target_path_recursive = @("$env:windir\system32","$env:windir\SysWOW64","$env:ProgramData","$env:userprofile\AppData\Local\GitHubDesktop\app-2.5.5\resources\app\git\usr\bin"), #target path for recursive dir
         #[string[]]$target_path_recursive = @("C:\Program Files","C:\Program Files (x86)","$env:userprofile\AppData\Local\GitHubDesktop\app-2.5.5\resources\app\git\usr\bin"), #target path for recursive dir
         [string[]]$target_path           = @("$env:windir"),  # Target path for NON-recursive dir
         [string]$target_file_extension   = ".exe",  # File extension to target
@@ -212,7 +212,7 @@ function Get-Xcyclopedia {
         $fileextension = $file.extension
 
         # Get file metadata
-        $filehash_md5 = $file_description = $file_metadata = $null
+        $filehash_md5 = $file_metadata = $null
         $file_metadata = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filepath)
     
         #Get file hashes
@@ -249,7 +249,7 @@ function Get-Xcyclopedia {
             $filehash_ssdeep = Get-Ssdeep -filepath $filepath -ssdeep_verbose $xcyclopedia_verbose
             
             #Append hash to ssdeep file (if enabled)
-            if($export_ssdeep_list -AND ($filehash_ssdeep -ne $null)){
+            if($export_ssdeep_list -AND ($null -ne $filehash_ssdeep)){
                 try {
                     
                     #Add MD5 hash to ssdeep file export (if enabled)
@@ -570,8 +570,8 @@ function Remove-NonAsciiCharacters {
     
     #$input -replace '(\\u0000)', ''
     
-    #remove non-ascii:
-    $input -replace '[^\u0009-\u007F]+', ''
+    #remove non-ascii (this helps remove invalid data blobs from command out):
+    $input -replace '[^\u0009-\u0019\u001B-\u007F]+', '' #Keep ASCII characters between 09 and 7F. Delete everything else. The only exception is 1A (SUB) which is also removed (SUB causes jekyll build problems).
 
 }
 
@@ -602,7 +602,7 @@ function Get-FileList {
     }
 
     # Filter down to just the specified file extension
-    $files_output = $dir | Where {$_.extension -eq "$file_extension"}
+    $files_output = $dir | Where-Object {$_.extension -eq "$file_extension"}
 
     $file_count = $files_output.Count
 
@@ -727,4 +727,4 @@ function Set-FileWriteUnlocked {
 }
 
 #start main function with defaults
-#Get-Xcyclopedia
+Get-Xcyclopedia

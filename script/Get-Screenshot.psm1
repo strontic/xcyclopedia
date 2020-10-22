@@ -42,7 +42,6 @@ namespace PInvoke
 
     # Get a process object from which we will get the main window bounds
     $iseProc = Get-Process -id $processid
-    $processname = $iseProc.Name
 
     $time
     $bitmap = $g = $null

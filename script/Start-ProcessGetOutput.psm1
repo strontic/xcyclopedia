@@ -67,7 +67,7 @@ function Start-ProcessGetOutput {
     $process_window_title = $process.MainWindowTitle
 
     # Get children processes (living children only)
-    $process_children = Get-WmiObject win32_process | where {$_.ParentProcessId -eq $process.Id}
+    $process_children = Get-WmiObject win32_process | Where-Object {$_.ParentProcessId -eq $process.Id}
 
     # GET HANDLES - If process is still running then get file handles (if get_handles is enabled)    
     if($get_handles -AND (-NOT $process_complete)) {
