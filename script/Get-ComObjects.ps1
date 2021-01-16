@@ -169,17 +169,17 @@ function Get-ComObjects {
 
                     if ($instance_member.Name) { #ensure the definition is not null
                         if($instance_member.MemberType -eq "Method"){
-                            $clsid_instance_methods | Add-Member -NotePropertyName $instance_member.Name -NotePropertyValue "$instance_member.OverloadDefinitions"
+                            $clsid_instance_methods | Add-Member -NotePropertyName $instance_member.Name -NotePropertyValue "$instance_member"
                         }
                         if($instance_member.MemberType -eq "Property"){
-                            $clsid_instance_properties | Add-Member -NotePropertyName $instance_member.Name -NotePropertyValue "$instance_member.OverloadDefinitions"
+                            $clsid_instance_properties | Add-Member -NotePropertyName $instance_member.Name -NotePropertyValue "$instance_member"
                         }
                     }
 
                 }
 
                 #Add values to clsid_instance_object (ensure source vars are not empty). 
-                # Note: In the "If" checks, the quotations around PSCustomObjects, "$clsid_instance_methods" and "$clsid_instance_properties" are intentional. Without them, it will always be True.
+                # Note: In the "if" statements, the quotations around PSCustomObjects, "$clsid_instance_methods" and "$clsid_instance_properties" are intentional. Without them, it will always be True.
                 if($instance_type)               { $clsid_instance_object | Add-Member -NotePropertyName "Type" -NotePropertyValue "$($instance_type.Name)" }
                 if("$clsid_instance_methods")    { $clsid_instance_object | Add-Member -NotePropertyName "Methods" -NotePropertyValue $clsid_instance_methods }
                 if("$clsid_instance_properties") { $clsid_instance_object | Add-Member -NotePropertyName "Properties" -NotePropertyValue $clsid_instance_properties }
