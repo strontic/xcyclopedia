@@ -19,7 +19,7 @@ The xCyclopedia project attempts to document all executable binaries (and eventu
   * Microsoft Documentation
 * File scan results (VirusTotal)
 * DLL Exported Functions (DLL files only)
-* (NEW!) COM Objects (CLSID, Friendly Names, Mappings to EXE/DLLs, Exposed methods/properties, other metadata) - Gathered via [Get-ComObjects.ps1](script/Get-ComObjects)
+* (NEW!) COM Objects (CLSID, Friendly Names, Mappings to EXE/DLLs, Exposed methods/properties, other metadata) - Gathered via [Get-ComObjects](script/Get-ComObjects.ps1)
 
 ## How is this done?
 
