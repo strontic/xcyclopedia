@@ -4,7 +4,7 @@
     Github: github.com/strontic/xcyclopedia
     Synopsis: Iterate through all executable files in a specified directory (default target is .EXE). Gather CLI usage/syntax, screenshots, file hashes, file metadata, signature validity, and child processes.
     Warning: Please be advised, if execute_files is enabled, this script may cause system instability, crash, or unwanted reboot/shutdown. Use this option at your own risk.
-    License: MIT License; Copyright (c) 2020 strontic
+    License: MIT License; Copyright (c) 2020-2021 strontic
 #>
 
 function Get-Xcyclopedia {
@@ -37,7 +37,7 @@ function Get-Xcyclopedia {
         website = 'strontic.com'
         github = 'github.com/strontic/xcyclopedia'
         synopsis = 'Gather metadata of executables'
-        license = 'MIT License; Copyright (c) 2020 strontic'
+        license = 'MIT License; Copyright (c) 2020-2021 strontic'
         rundate = Get-Date -Format "yyyy-MM-dd"
     }
 
@@ -571,7 +571,9 @@ function Remove-NonAsciiCharacters {
     #$input -replace '(\\u0000)', ''
     
     #remove non-ascii (this helps remove invalid data blobs from command out):
-    $input -replace '[^\u0009-\u0019\u001B-\u007F]+', '' #Keep ASCII characters between 09 and 7F. Delete everything else. The only exception is 1A (SUB) which is also removed (SUB causes jekyll build problems).
+    $input -replace '[^\u0009-\u000D\u0020-\u007E]+', '' #Keeps ASCII characters between 09 and 0D, and between 20 and 7E. Deletes everything else. Note: 1A (SUB) causes jekyll build problems. 
+        # 2021-11-06: Now removes characters 0E through 1F. These are special ASCII control characters which cause jq and dos2unix to fail (resolves issue #3 and #4)
+
 
 }
 
